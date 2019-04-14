@@ -57,19 +57,24 @@ def load_experiment_csvs(data_dpath=None, csv_fnames=None, meta_fnames=None):
     df = pd.concat(merged_dfs)
     return df
 
-def update_calculated_fields(df, group_col=None):
+def update_calculated_fields(df, group_col=None, min_fl=0.05):
     if group_col is None:
         group_col = ['experiment', 'sample']
-    df.loc[:,'logFL'] =np.log(df['FL'])
-    df.loc[:,'cumsumFL'] = df.groupby(group_col).FL.transform(pd.Series.cumsum)
-    df.loc[:,'cumsumlogFL'] = df.groupby(group_col).logFL.transform(pd.Series.cumsum)
-    df.loc[:,'zscoreFL'] = df.groupby(group_col).FL.transform(stats.zscore)
-    df.loc[:,'diffFL'] = df.groupby(group_col).FL.transform(pd.Series.diff)
-    df.loc[:,'difflogFL'] = df.groupby(group_col).logFL.transform(pd.Series.diff)
-    df.loc[:,'diffday'] = df.groupby(group_col).day.transform(pd.Series.diff)
-    df.loc[:,'rateFL'] = df.diffFL / df.diffday
-    df.loc[:,'ratelogFL'] = df.difflogFL / df.diffday
-    df.loc[:,'experiment_sample'] = df.experiment + ', ' + df['sample']
+    df.loc[:, 'FL_orig'] = df.FL
+    if min_fl is not None:
+        df.loc[:, 'FL'] = df.FL.clip(lower=min_fl)
+
+    df.loc[:, 'logFL'] =np.log(df['FL'])
+    df.loc[:, 'cumsumFL'] = df.groupby(group_col).FL.transform(pd.Series.cumsum)
+    df.loc[:, 'cumsumlogFL'] = df.groupby(group_col).logFL.transform(pd.Series.cumsum)
+    df.loc[:, 'zscoreFL'] = df.groupby(group_col).FL.transform(stats.zscore)
+    df.loc[:, 'diffFL'] = df.groupby(group_col).FL.transform(pd.Series.diff)
+    df.loc[:, 'difflogFL'] = df.groupby(group_col).logFL.transform(pd.Series.diff)
+    df.loc[:, 'diffday'] = df.groupby(group_col).day.transform(pd.Series.diff)
+    df.loc[:, 'rateFL'] = df.diffFL / df.diffday
+    df.loc[:, 'ratelogFL'] = df.difflogFL / df.diffday
+    df.loc[:, 'experiment_sample'] = df.experiment + ', ' + df['sample']
+
     return df
 
 
@@ -373,17 +378,20 @@ def forest_heatmap(clf, X, y, metadf=None, breakdown=None):
 
 
 def extract_decay(d, y_col = 'FL', x_col = 'day'):
+    y_col_orig = f'{y_col}_orig'
     d = d.reset_index()
     maxidx = d[y_col].idxmax()
     c = d[maxidx:].reset_index()
     r = pd.DataFrame()
+
     r[x_col] = c[x_col] - c[x_col].min()
     r[y_col] = c[y_col] / c[y_col].max()
     meta_cols = ['experiment', 'sample', 'PRO', 'ALT', 'culture']
     for c in meta_cols:
         r[c] = d[c].unique()[0]
-
     return r
+
+
 def generate_decay(df, sample_col):
     dfd = df.groupby(sample_col).apply(extract_decay)
     dfd.reset_index(level=0, inplace=True)
