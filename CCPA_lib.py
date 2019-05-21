@@ -21,6 +21,7 @@ from matplotlib.lines import Line2D
 import matplotlib.patches as mpatches
 
 
+
 def load_experiment_csvs(data_dpath=None, csv_fnames=None, meta_fnames=None):
     if data_dpath is None:
         data_dpath = r'C:\Users\wosnat\Documents\msc\work\CCPA\data_5_3_2019'
@@ -76,6 +77,25 @@ def update_calculated_fields(df, group_col=None, min_fl=0.05):
     df.loc[:, 'experiment_sample'] = df.experiment + ', ' + df['sample']
 
     return df
+
+def update_rolling_average(df, group_col=None, min_fl=0.05):
+    if group_col is None:
+        group_col = ['experiment', 'sample']
+    df = df.groupby(group_col).apply(add_rolling_average)
+    return df.reset_index(drop=True)
+
+
+def add_rolling_average(df, from_col='FL', to_col='roll', index_col='day', window='3d'):
+    """ add a rolling average column to df """
+    #print(df.head())
+    c = df.copy()
+    #print(c.head())
+    c.index = pd.to_timedelta(c[index_col], unit='d')
+    c.index.names = ['i'] # change from 'day' to avoid merge conflict
+    c.loc[:, to_col] = c[from_col].rolling(window, min_periods=1).mean()
+    d = df.merge(c.loc[:, [index_col, to_col]], on=index_col, suffixes=('',''))
+    #print(d[to_col])
+    return d
 
 
 def update_day_column(d, prev_exp, cur_exp):
