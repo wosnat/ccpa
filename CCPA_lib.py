@@ -377,7 +377,7 @@ def forest_heatmap(clf, X, y, metadf=None, breakdown=None):
     sns.heatmap(t,annot=True)
 
 
-def extract_decay(d, y_col = 'FL', x_col = 'day'):
+def extract_decay(d, y_col = 'FL', x_col = 'day', scale=True):
     y_col_orig = f'{y_col}_orig'
     d = d.reset_index()
     maxidx = d[y_col].idxmax()
@@ -385,15 +385,19 @@ def extract_decay(d, y_col = 'FL', x_col = 'day'):
     r = pd.DataFrame()
 
     r[x_col] = c[x_col] - c[x_col].min()
-    r[y_col] = c[y_col] / c[y_col].max()
+    if scale:
+        r[y_col] = c[y_col] / c[y_col].max()
+    else:
+        r[y_col] = c[y_col]
+    
     meta_cols = ['experiment', 'sample', 'PRO', 'ALT', 'culture']
     for c in meta_cols:
         r[c] = d[c].unique()[0]
     return r
 
 
-def generate_decay(df, sample_col):
-    dfd = df.groupby(sample_col).apply(extract_decay)
+def generate_decay(df, sample_col='experiment_sample', scale=True):
+    dfd = df.groupby(sample_col).apply(lambda x: extract_decay(x, scale=scale))
     dfd.reset_index(level=0, inplace=True)
     return dfd
 
