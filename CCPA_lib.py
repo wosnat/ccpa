@@ -20,7 +20,8 @@ from sklearn.ensemble import RandomForestClassifier
 from matplotlib.lines import Line2D
 import matplotlib.patches as mpatches
 
-
+from scipy.optimize import least_squares
+from scipy.optimize import curve_fit
 
 def load_experiment_csvs(data_dpath=None, csv_fnames=None, meta_fnames=None):
     if data_dpath is None:
@@ -420,6 +421,132 @@ def generate_decay(df, sample_col='experiment_sample', scale=True):
     dfd = df.groupby(sample_col).apply(lambda x: extract_decay(x, scale=scale))
     dfd.reset_index(level=0, inplace=True)
     return dfd
+
+
+
+#############################
+
+# models
+#
+# J.J. Arps (1945):
+#
+# Exponential:  The decline rate a does not varies with q.
+#
+#               q = q0* e^(-a*t)
+#
+# Harmonic:     The decline rate a varies linearly with q.
+#
+#               q = q0 / (1 + a * t)
+#
+# Hyperbolic:   The decline rate a varies geometrically with q
+#
+#               q = q0 / (1 + d*a*t)^(1/d)
+#
+#
+#  3-­‐parameter  Logistic :
+#         Y(t)  =  b1   /  [1  +  b2 *exp(  b3 *t  )]
+#
+# 4-­‐parameter  Logistic
+#
+#         Y(t)  =  b1  +  (b2   –  b1 )  /  [1  +  exp(b3 *(t  –  b4 ))]
+#
+# 3-­‐parameter  Rodbard
+#
+# Y(t)  =  (1   –  b4 )/[1  +  (t/b3 ) b2 ]  +  b4
+#
+# 4-­‐parameter  Rodbard
+#
+#     Y(t)  =  (b1   –  b4 )/[1  +  (t/b3 ) b2 ]  +  b4
+#
+# Gompertz
+#
+#     Y(t)  =  b1 *exp(  –  b2* exp(  –  b3 *t))
+#
+# Log-­‐Logistic
+#
+#     Y(t)  =  b1  –  log(1  +  b2 *exp( –  b3 *t)
+#
+# First-­‐order  Decay
+#
+#     Y(t)  =  b1 *exp(  –  b2 *t)  +  b3
+
+def model_exponential(z, a1, b1, c1):
+    return (
+        (a1 * np.exp(-b1 * z) + c1)
+    )
+
+def model_harmonic(z, a1, b1, c1):
+    return (
+        ((a1 / (1 + b1 * z)) + c1)
+    )
+
+
+def model5(z,  # s1, #s2, s3,
+           a1, b1, c1, d1  # a2, b2,c2, a3, b3, c3,  a4, b4, c4
+           ):
+    return (
+        ((a1 * np.power((1 + d1 * b1 * z), -1 / d1)) + c1)
+    )
+
+def model_exponential_segmented(z, s1, s2, s3, a1, b1, c1, a2, b2, c2, a3, b3, c3, a4, b4, c4):
+    return np.piecewise(z.values,
+                        condlist=[
+                            (z.values < s1),
+                            (z.values >= s1) & (z.values < s2),
+                            (z.values >= s2) & (z.values < s3),
+                        ],
+                        funclist=[
+                            lambda t: model_exponential(t, a1, b1, c1),
+                            lambda t: model_exponential(t, a2, b2, c2),
+                            lambda t: model_exponential(t, a3, b3, c3),
+                            lambda t: model_exponential(t, a4, b4, c4),
+                        ]
+                        )
+
+def model_linear(z, a1, b1 ):
+    return a1 * z + b1
+
+#  3-­‐parameter  Logistic :
+#         Y(t)  =  b1   /  [1  +  b2 *exp(  b3 *t  )]
+def model_logistic3(z, b1, b2, b3 ):
+    return b1 / (1 + b2 * np.exp(b3 * z))
+#
+# 4-­‐parameter  Logistic
+#
+#         Y(t)  =  b1  +  (b2   –  b1 )  /  [1  +  exp(b3 *(t  –  b4 ))]
+def model_logistic4(z, b1, b2, b3, b4 ):
+    return b1 + (b2 - b1) / (1 +  np.exp(b3 * (z - b4)))
+#
+# 3-­‐parameter  Rodbard
+#
+# Y(t)  =  (1   –  b4 )/[1  +  (t/b3 ) b2 ]  +  b4
+def model_rodbard4(z, b1, b2, b3, b4):
+    return (b1 - b4) / (1 + (z / b3)* b2) + b4
+#
+# 4-­‐parameter  Rodbard
+#
+#     Y(t)  =  (b1   –  b4 )/[1  +  (t/b3 ) b2 ]  +  b4
+#
+# Gompertz
+#
+#     Y(t)  =  b1 *exp(  –  b2* exp(  –  b3 *t))
+def model_gompertz(z, b1, b2, b3):
+    return  b1 * np.exp( - b2 * np.exp( -b3 * z))
+#
+# Log-­‐Logistic
+#
+#     Y(t)  =  b1  –  log(1  +  b2 *exp( –  b3 *t)
+def model_loglogistic(z, b1, b2, b3):
+    return  b1 - np.log(1 + b2 * np.exp( -b3 * z))
+#
+# First-­‐order  Decay
+#
+#     Y(t)  =  b1 *exp(  –  b2 *t)  +  b3
+
+
+def model_cubic(z, b1, b2, b3, b4):
+    return  b1* np.power(z, 3) + b2 * np.power(z, 2) + b3 * z + b4
+
 
 
 
