@@ -469,6 +469,9 @@ def generate_decay(df, sample_col='experiment_sample', scale=True):
 # First-­‐order  Decay
 #
 #     Y(t)  =  b1 *exp(  –  b2 *t)  +  b3
+#
+# s-curve
+# g(x) = 1 - 1/(1 + exp(-x))
 
 def model_exponential(z, a1, b1, c1):
     return (
@@ -547,7 +550,8 @@ def model_loglogistic(z, b1, b2, b3):
 def model_cubic(z, b1, b2, b3, b4):
     return  b1* np.power(z, 3) + b2 * np.power(z, 2) + b3 * z + b4
 
-
+def model_scurve(z, b1, b2, b3):
+    return b1 * (1 - 1 / (1 + np.exp(-b2 * z))) + b3
 
 
 if __name__ == '__main__':
