@@ -473,16 +473,20 @@ def generate_decay(df, sample_col='experiment_sample', scale=True):
 # s-curve
 # g(x) = 1 - 1/(1 + exp(-x))
 
-def model_exponential(z, a1, b1, c1):
+def model_exponential(z, a1, b1, c1, _):
     return (
         (a1 * np.exp(-b1 * z) + c1)
     )
 
-def model_harmonic(z, a1, b1, c1):
+def model_harmonic(z, a1, b1, c1, _):
     return (
         ((a1 / (1 + b1 * z)) + c1)
     )
 
+def model_hyperbolic(z, a1, b1, c1, d1):
+    return (
+        ((a1 / np.power((1 + d1 * b1 * z), d1)) + c1)
+    )
 
 def model5(z,  # s1, #s2, s3,
            a1, b1, c1, d1  # a2, b2,c2, a3, b3, c3,  a4, b4, c4
@@ -499,19 +503,19 @@ def model_exponential_segmented(z, s1, s2, s3, a1, b1, c1, a2, b2, c2, a3, b3, c
                             (z.values >= s2) & (z.values < s3),
                         ],
                         funclist=[
-                            lambda t: model_exponential(t, a1, b1, c1),
-                            lambda t: model_exponential(t, a2, b2, c2),
-                            lambda t: model_exponential(t, a3, b3, c3),
-                            lambda t: model_exponential(t, a4, b4, c4),
+                            lambda t: model_exponential(t, a1, b1, c1,0),
+                            lambda t: model_exponential(t, a2, b2, c2,0),
+                            lambda t: model_exponential(t, a3, b3, c3,0),
+                            lambda t: model_exponential(t, a4, b4, c4,0),
                         ]
                         )
 
-def model_linear(z, a1, b1 ):
+def model_linear(z, a1, b1, _1, _2 ):
     return a1 * z + b1
 
 #  3-­‐parameter  Logistic :
 #         Y(t)  =  b1   /  [1  +  b2 *exp(  b3 *t  )]
-def model_logistic3(z, b1, b2, b3 ):
+def model_logistic3(z, b1, b2, b3 , _):
     return b1 / (1 + b2 * np.exp(b3 * z))
 #
 # 4-­‐parameter  Logistic
@@ -533,13 +537,13 @@ def model_rodbard4(z, b1, b2, b3, b4):
 # Gompertz
 #
 #     Y(t)  =  b1 *exp(  –  b2* exp(  –  b3 *t))
-def model_gompertz(z, b1, b2, b3):
+def model_gompertz(z, b1, b2, b3, _):
     return  b1 * np.exp( - b2 * np.exp( -b3 * z))
 #
 # Log-­‐Logistic
 #
 #     Y(t)  =  b1  –  log(1  +  b2 *exp( –  b3 *t)
-def model_loglogistic(z, b1, b2, b3):
+def model_loglogistic(z, b1, b2, b3, _):
     return  b1 - np.log(1 + b2 * np.exp( -b3 * z))
 #
 # First-­‐order  Decay
@@ -550,15 +554,15 @@ def model_loglogistic(z, b1, b2, b3):
 def model_cubic(z, b1, b2, b3, b4):
     return  b1* np.power(z, 3) + b2 * np.power(z, 2) + b3 * z + b4
 
-def model_scurve(z, b1, b2, b3):
+def model_scurve(z, b1, b2, b3, _):
     return b1 * (1 - 1 / (1 + np.exp(-b2 * z))) + b3
 
 
-if __name__ == '__main__':
-
-    df = pd.read_pickle('CCPA.pkl.gz')
-
-
-    d = df.loc[(df.experiment == 'e5') & (df['sample'] == '37C')]
-    analyze_curve(d)
-
+# if __name__ == '__main__':
+#
+#     df = pd.read_pickle('CCPA.pkl.gz')
+#
+#
+#     d = df.loc[(df.experiment == 'e5') & (df['sample'] == '37C')]
+#     analyze_curve(d)
+#
