@@ -19,6 +19,7 @@ from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
 from matplotlib.lines import Line2D
 import matplotlib.patches as mpatches
+from sklearn.metrics import classification_report, accuracy_score
 
 from scipy.optimize import least_squares
 from scipy.optimize import curve_fit
@@ -382,20 +383,43 @@ def forest_feature_importance(clf, col_names, n=10):
     feature_importances.nlargest(columns='importance',n=n).plot(kind='barh')
 
 
-def forest_heatmap(clf, X, y, metadf=None, breakdown=None):
+def forest_heatmap(clf, X, y, metadf=None, breakdown=None, func=None, ax=None):
     scaledX = StandardScaler().fit_transform(X)
     d = pd.DataFrame()
     d['actual'] = y
     d['predicted'] = clf.predict(scaledX)
-    d['x'] =1
+    if func is not None:
+        d['actual'] = func(d['actual'])
+        d['predicted'] = func(d['predicted'])
+
+    d['x'] = 1
     idx = 'actual'
     if metadf is not None and breakdown is not None:
         d[breakdown] = metadf[breakdown]
         idx = [breakdown, 'actual']
 
-    t =d.pivot_table(index=idx,columns=['predicted'], aggfunc='count')
+    t = d.pivot_table(index=idx, columns=['predicted'], aggfunc='count')
     t.columns = t.columns.get_level_values(1)
-    sns.heatmap(t,annot=True)
+    print(f"accuracy: {accuracy_score(y_true=d['actual'], y_pred=d['predicted'])}")
+    print(classification_report(y_true=d['actual'], y_pred=d['predicted']))
+
+    sns.heatmap(t, annot=True, cmap='coolwarm', ax=ax)
+    return t
+
+# #func = lambda x : x.str.split(', ', expand=True)[0]
+# t =forest_heatmap(clf=clf, X=X, y=y)
+# fig, ax = plt.subplots(figsize=(12,12))
+# sns.heatmap(t, annot=True, cmap='coolwarm', ax=ax)
+#
+# ax.axhline(5)
+# ax.axhline(15)
+# ax.axhline(20)
+# ax.axhline(10)
+# ax.axvline(4)
+# ax.axvline(8)
+# ax.axvline(13)
+# ax.axvline(15)
+
 
 
 def extract_decay(d, y_col = 'FL', x_col = 'day', scale=True):
