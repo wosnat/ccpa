@@ -369,20 +369,24 @@ def add_metacols_to_pca(dfpca, df, meta_cols):
         dfpca[c] = df[c]
     return dfpca
 
-def _resample_func(df, x_col='day', y_col='FL', period='3d' ):
+
+def _resample_func(df, x_col='day', value_col='FL', period='3d' ):
     t = df
     t.index = pd.to_timedelta(t[x_col], unit='d')
-    return t.resample(period).agg({y_col : 'mean'})
+    return t.resample(period).agg({value_col : 'mean'})
     #return t.resample(period).agg({y_col : ['mean', 'median','std']})
     #return t.rolling(period, min_periods=1).agg({y_col : ['mean', 'median','std']})
 
-def resample_df(df, x_col='day', y_col='FL', period='3d', groupby_cols=None):
+
+def resample_df(df, x_col='day', value_col='FL', period='3d', groupby_cols=None):
     if groupby_cols is None:
         groupby_cols = ['experiment_sample', 'experiment', 'sample', 'PRO', 'ALT', 'culture']
-    df_resampled = df.groupby(groupby_cols).apply(lambda x: resample_df(x, y_col=y_col, x_col=x_col, period=period))
+    df_resampled = df.groupby(groupby_cols).apply(lambda x: resample_df(x, value_col=value_col, x_col=x_col, period=period))
     df_resampled = df_resampled.reset_index()
     df_resampled.dropna(inplace=True)
     return df_resampled
+
+
 
 def forest_classifier(X, y):
     scaledX = StandardScaler().fit_transform(X)
@@ -391,7 +395,8 @@ def forest_classifier(X, y):
                                  # random_state=0)
                                  )
     clf.fit(scaledX, y)
-    print(clf.score(scaledX, y))
+    print('train score', clf.score(scaledX, y))
+    print ('oob score', clf.oob_score_)
     return clf
 
 def forest_feature_importance(clf, col_names, n=10):
@@ -440,6 +445,89 @@ def forest_heatmap(clf, X, y, metadf=None, breakdown=None, func=None, ax=None):
 # ax.axvline(13)
 # ax.axvline(15)
 
+
+import sklearn.metrics as metrics
+
+
+def _calc_score_for_one_type(res, y_true, y_pred, suffix):
+    precision, recall, f1, support = metrics.precision_recall_fscore_support(
+        y_true=y_true,
+        y_pred=y_pred,
+        average='weighted'
+    )
+    res[f'accuracy_{suffix}'] = metrics.accuracy_score(y_true=y_true, y_pred=y_pred)
+    res[f'precision_{suffix}'] = precision
+    res[f'recall_{suffix}'] = recall
+    res[f'f1_{suffix}'] = f1
+    res[f'support_{suffix}'] = support
+
+
+def score_model(modelname, clf, X_train, y_train, X_test, y_test, return_y = False):
+    func = lambda x: x.str.split(',', expand=True)[0]
+    scalar = StandardScaler()
+    scaledX_train = scalar.fit_transform(X_train)
+    scaledX_test = scalar.transform(X_test)
+
+    y_train_pred = clf.predict(scaledX_train)
+    y_test_pred = clf.predict(scaledX_test)
+
+    y_train_pro = func(y_train)
+    y_test_pro = func(y_test)
+    y_train_pred_pro = func(pd.Series(y_train_pred, index=y_train.index))
+    y_test_pred_pro = func(pd.Series(y_test_pred, index=y_test.index))
+
+    res = {'model': modelname}
+    res['oob_score'] = clf.oob_score_
+    _calc_score_for_one_type(res, y_true=y_train, y_pred=y_train_pred, suffix='train')
+    _calc_score_for_one_type(res, y_true=y_test, y_pred=y_test_pred, suffix='test')
+    _calc_score_for_one_type(res, y_true=y_train_pro, y_pred=y_train_pred_pro, suffix='train_PRO')
+    _calc_score_for_one_type(res, y_true=y_test_pro, y_pred=y_test_pred_pro, suffix='test_PRO')
+
+    if not return_y:
+        return clf, res, None
+    else:
+        y_train_df = pd.DataFrame(data={
+            f'{modelname}_y': y_train,
+            f'{modelname}_y_PRO': y_train_pro,
+            f'{modelname}_y_pred': y_train_pred,
+            f'{modelname}_y_pred_PRO': y_train_pred_pro,
+        }, index=y_train.index)
+        y_train_df['Type'] = 'Train'
+        y_test_df = pd.DataFrame(data={
+            f'{modelname}_y': y_test,
+            f'{modelname}_y_PRO': y_test_pro,
+            f'{modelname}_y_pred': y_test_pred,
+            f'{modelname}_y_pred_PRO': y_test_pred_pro,
+        }, index=y_test.index)
+        y_test_df['Type'] = 'Test'
+        y_df = pd.concat([y_train_df, y_test_df])
+        return clf, res, y_df
+
+
+def ml(X, metadf, modelname, y_col='PRO'):
+    print (modelname)
+    X_train = X[X.index.str.startswith('e1') |
+                X.index.str.startswith('e3') |
+                X.index.str.startswith('e4') |
+                X.index.str.startswith('e5')]
+    X_test = X[X.index.str.startswith('e6')]
+
+    metadf.index = metadf.experiment_sample
+    metadf_train = metadf[metadf.index.str.startswith('e1') |
+                          metadf.index.str.startswith('e3') |
+                          metadf.index.str.startswith('e4') |
+                          metadf.index.str.startswith('e5')]
+    metadf_test = metadf[metadf.index.str.startswith('e6')]
+
+    if y_col=='PRO_ALT':
+        y_train = metadf_train.PRO + ',' + metadf_train.ALT
+        y_test = metadf_test.PRO + ',' + metadf_test.ALT
+    else:
+        y_train = metadf_train[y_col]
+        y_test = metadf_test[y_col]
+
+    clf = forest_classifier(X=X_train, y=y_train)
+    return score_model(modelname, clf, X_train, y_train, X_test, y_test)
 
 
 def extract_decay(d, y_col = 'FL', x_col = 'day', scale=True):
@@ -610,3 +698,30 @@ def model_scurve(z, b1, b2, b3, _):
 #     d = df.loc[(df.experiment == 'e5') & (df['sample'] == '37C')]
 #     analyze_curve(d)
 #
+
+
+# value_col_list = ['FL', 'logFL', 'cumsumFL', 'cumsumlogFL', 'zscoreFL', 'rateFL', 'ratelogFL'],
+# resample_period_list = [None, '1d', '3d', '5d']
+# y_col_list = ['PRO', 'ALT', 'PRO_ALT']
+# cumsummode_list = [False, True]
+
+
+def compare_models(df, value_col, resample_period_list, y_col_list, cumsummode_list):
+    # resample first
+    stats_list = []
+    for resample_period in resample_period_list:
+        if resample_period is not None:
+            d = cp.resample_df(df, value_col=value_col, period=resample_period)
+        else:
+            d = df
+        metadf = cp.get_meta(d, value_col=value_col)
+        for cumsummode in cumsummode_list:
+            X = cp.experiments2X(d, value_col=value_col, cumsummode=cumsummode)
+
+            resample_str = '_' + resample_period if resample_period is not None else ''
+            cumsummode_str = '_cumsum' if cumsummode else ''
+            for y_col in y_col_list:
+                modelname = f'{y_col}_{value_col}{resample_str}{cumsummode_str}'
+                clf, res, _ = cp.ml(X=X, metadf=metadf, modelname=modelname, y_col=y_col)
+                stats_list.append(res)
+    return stats_list
