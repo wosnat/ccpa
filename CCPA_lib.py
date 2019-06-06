@@ -352,7 +352,8 @@ def features2X(df, meta_cols=None):
     return X
 
 def experiments2X(df, sample_col='experiment_sample', value_col='logFL', x_col='day', cumsummode=True):
-    X = df.pivot(index=sample_col, columns=x_col, values=value_col)
+    d = df.dropna(subset=[value_col])
+    X = d.pivot(index=sample_col, columns=x_col, values=value_col)
     if X.columns.dtype == '<m8[ns]':
         X.columns = X.columns.astype('timedelta64[D]')
     Xi = X.interpolate(method='from_derivatives', axis=1, limit_area='inside')
@@ -381,7 +382,7 @@ def _resample_func(df, x_col='day', value_col='FL', period='3d' ):
 def resample_df(df, x_col='day', value_col='FL', period='3d', groupby_cols=None):
     if groupby_cols is None:
         groupby_cols = ['experiment_sample', 'experiment', 'sample', 'PRO', 'ALT', 'culture']
-    df_resampled = df.groupby(groupby_cols).apply(lambda x: resample_df(x, value_col=value_col, x_col=x_col, period=period))
+    df_resampled = df.groupby(groupby_cols).apply(lambda x: _resample_func(x, value_col=value_col, x_col=x_col, period=period))
     df_resampled = df_resampled.reset_index()
     df_resampled.dropna(inplace=True)
     return df_resampled
