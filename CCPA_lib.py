@@ -353,6 +353,8 @@ def features2X(df, meta_cols=None):
 
 def experiments2X(df, sample_col='experiment_sample', value_col='logFL', x_col='day', cumsummode=True):
     X = df.pivot(index=sample_col, columns=x_col, values=value_col)
+    if X.columns.dtype == '<m8[ns]':
+        X.columns = X.columns.astype('timedelta64[D]')
     Xi = X.interpolate(method='from_derivatives', axis=1, limit_area='inside')
     Xi.fillna(method='pad', inplace=True, axis=1)
     if cumsummode:
@@ -367,11 +369,27 @@ def add_metacols_to_pca(dfpca, df, meta_cols):
         dfpca[c] = df[c]
     return dfpca
 
+def _resample_func(df, x_col='day', y_col='FL', period='3d' ):
+    t = df
+    t.index = pd.to_timedelta(t[x_col], unit='d')
+    return t.resample(period).agg({y_col : 'mean'})
+    #return t.resample(period).agg({y_col : ['mean', 'median','std']})
+    #return t.rolling(period, min_periods=1).agg({y_col : ['mean', 'median','std']})
+
+def resample_df(df, x_col='day', y_col='FL', period='3d', groupby_cols=None):
+    if groupby_cols is None:
+        groupby_cols = ['experiment_sample', 'experiment', 'sample', 'PRO', 'ALT', 'culture']
+    df_resampled = df.groupby(groupby_cols).apply(lambda x: resample_df(x, y_col=y_col, x_col=x_col, period=period))
+    df_resampled = df_resampled.reset_index()
+    df_resampled.dropna(inplace=True)
+    return df_resampled
 
 def forest_classifier(X, y):
     scaledX = StandardScaler().fit_transform(X)
-    clf = RandomForestClassifier(n_estimators=100, max_depth=2,
-                                  random_state=0)
+    clf = RandomForestClassifier(n_estimators=100, oob_score=True,
+                                 #max_depth=2,
+                                 # random_state=0)
+                                 )
     clf.fit(scaledX, y)
     print(clf.score(scaledX, y))
     return clf
@@ -403,8 +421,10 @@ def forest_heatmap(clf, X, y, metadf=None, breakdown=None, func=None, ax=None):
     print(f"accuracy: {accuracy_score(y_true=d['actual'], y_pred=d['predicted'])}")
     print(classification_report(y_true=d['actual'], y_pred=d['predicted']))
 
+    #forest_feature_importance(clf, X.columns)
+
     sns.heatmap(t, annot=True, cmap='coolwarm', ax=ax)
-    return t
+    #return t
 
 # #func = lambda x : x.str.split(', ', expand=True)[0]
 # t =forest_heatmap(clf=clf, X=X, y=y)
