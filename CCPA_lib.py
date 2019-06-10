@@ -20,9 +20,14 @@ from sklearn.ensemble import RandomForestClassifier
 from matplotlib.lines import Line2D
 import matplotlib.patches as mpatches
 from sklearn.metrics import classification_report, accuracy_score
+#import sklearn.metrics as metrics
+from sklearn.feature_selection import RFECV
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import auc
 
 from scipy.optimize import least_squares
 from scipy.optimize import curve_fit
+from scipy import stats
 
 def load_experiment_csvs(data_dpath=None, csv_fnames=None, meta_fnames=None):
     if data_dpath is None:
@@ -138,13 +143,13 @@ def concat_experiments(df):
 #    -
 # 
 # 
-# 4. decay phase
-#    - decay time - total time to get to 0.5
+# 4. decline phase
+#    - decline time - total time to get to 0.5
 #    - half yield - time to get to 1/2 growth max value
-#        (halfdecayTime = (halfYield - beforeHalf + (decayPointsSlope * beforeHalfTime)) / decayPointsSlope)
-#        (halfLife = halfdecayTime - maxTime)
+#        (halfdeclineTime = (halfYield - beforeHalf + (declinePointsSlope * beforeHalfTime)) / declinePointsSlope)
+#        (halfLife = halfdeclineTime - maxTime)
 #    - tenth yield - time to get to 1/10 growth max value
-#    - decay rate
+#    - decline rate
 #    - number of spikes
 #    
 # 
@@ -253,7 +258,7 @@ def analyze_curve(df, x_col='day', y_col='FL', y_logcol='logFL', rate_col='rateF
                                   x_col=x_col, y_col=y_col, y_logcol=y_logcol,
                                   rate_col=rate_col, rate_logcol=rate_logcol,
                                  ))
-    res.update(analyze_half_curve(df[maxidx:], label='decay',
+    res.update(analyze_half_curve(df[maxidx:], label='decline',
                                   max_val=maxval, min_val=minval,
                                   x_col=x_col, y_col=y_col, y_logcol=y_logcol,
                                   rate_col=rate_col, rate_logcol=rate_logcol,
@@ -275,18 +280,90 @@ def display_features(d, res, x_col='day', y_col='FL', y_logcol='logFL'):
     up_pred = up_x * res['growth_log_coefficient'] + res['growth_log_intercept']
     sns.lineplot(x=up_x, y=up_pred)
 
-    sns.scatterplot(x=[res['max_day']+res['decay_half_day']], y=[res['decay_half_val']],  size=[100], legend=False)
-    sns.scatterplot(x=[res['max_day']+res['decay_log_half_day']], y=[res['decay_log_half_val']],  size=[100], legend=False)
-    sns.scatterplot(x=[res['max_day']+res['decay_tenth_day']], y=[res['decay_tenth_val']],  size=[100], legend=False)
-    sns.scatterplot(x=[res['max_day']+res['decay_log_tenth_day']], y=[res['decay_log_tenth_val']], size=[100], legend=False)
+    sns.scatterplot(x=[res['max_day']+res['decline_half_day']], y=[res['decline_half_val']],  size=[100], legend=False)
+    sns.scatterplot(x=[res['max_day']+res['decline_log_half_day']], y=[res['decline_log_half_val']],  size=[100], legend=False)
+    sns.scatterplot(x=[res['max_day']+res['decline_tenth_day']], y=[res['decline_tenth_val']],  size=[100], legend=False)
+    sns.scatterplot(x=[res['max_day']+res['decline_log_tenth_day']], y=[res['decline_log_tenth_val']], size=[100], legend=False)
     dn_x = d.loc[d[x_col] >= res['max_day'], x_col]
-    dn_pred = dn_x * res['decay_log_coefficient'] + res['decay_log_intercept']
+    dn_pred = dn_x * res['decline_log_coefficient'] + res['decline_log_intercept']
     sns.lineplot(x=dn_x, y=dn_pred)
 
 
 def generate_features(df, groupby_col='experiment_sample'):
     g = df.groupby(groupby_col).apply(analyze_curve)
     return g
+
+
+def _agg_func_exponential_diff_features(df, x_col='day', y_col='positive_diff'):
+    if df.shape[0] == 1:
+        aucval = 0
+    else:
+        aucval = auc(x=df[x_col], y=df[y_col])
+
+    return pd.Series({
+        'length': df[x_col].max() - df[x_col].min(),
+        'auc': aucval,
+        'max': df[y_col].max(),
+        'std': df[y_col].std(),
+        'start': df[x_col].min(),
+    })
+
+
+def _calculate_exponential_diff_features_onetype(df, x_col='day', y_col='exponential_diff', min_error=0.1, negative=False, prefix=''):
+    w = df.copy()
+    col = 'n'
+    if negative:
+        w.loc[:, col] = -w[y_col]
+    else:
+        w.loc[:, col] = w[y_col]
+    w.loc[w[col] < min_error, col] = 0
+
+    dfa = w.groupby((w[col] == 0).cumsum()).apply(
+        lambda x: _agg_func_exponential_diff_features(x, y_col=col, x_col=x_col))
+    dfa = dfa.reset_index(drop=True)
+    dfstart = dfa.loc[dfa['start'] == 0]
+    if dfstart.shape[0] == 0:
+        dfstart.loc[-1] = [0, 0, 0, 0, 0]
+    dfa = dfa.loc[(dfa['max'] != 0) & (dfa['start'] != 0)]
+    features = ['length', 'auc', 'max', 'std', 'start']
+    res = dict()
+    for f in features:
+        res.update({
+            f'{prefix}_{f}_max': dfa[f].max(),
+            f'{prefix}_{f}_min': dfa[f].min(),
+            f'{prefix}_{f}_std': dfa[f].std(),
+            f'{prefix}_{f}_mean': dfa[f].mean(),
+            f'{prefix}_{f}_sum': dfa[f].sum(),
+        })
+    for f in ['length', 'auc', 'max', 'std']:
+        res.update({
+            f'{prefix}_{f}_start': dfstart[f].max(),
+        })
+
+
+    return res
+
+def _calculate_exponential_diff_features(df, x_col='day', y_col='exponential_diff', min_error=0.1):
+    res = {
+        'error_normal_pvalue' : stats.shapiro(df[y_col])[1],
+    }
+    res.update(_calculate_exponential_diff_features_onetype(
+        df,
+        x_col=x_col,
+        y_col=y_col,
+        min_error=min_error,
+        negative=False,
+        prefix='pos_error'))
+    res.update(_calculate_exponential_diff_features_onetype(
+        df,
+        x_col=x_col,
+        y_col=y_col,
+        min_error=min_error,
+        negative=True,
+        prefix='neg_error'))
+
+    return pd.Series(res)
+
 
 def run_pca(X, metadf, sample_col='experiment_sample', n_components=2):
     scaledX = StandardScaler().fit_transform(X)
@@ -387,17 +464,33 @@ def resample_df(df, x_col='day', value_col='FL', period='3d', groupby_cols=None)
     df_resampled.dropna(inplace=True)
     return df_resampled
 
+def _rolling_func(df, x_col='day', value_col='FL', period='3d' ):
+    t = df
+    t.index = pd.to_timedelta(t[x_col], unit='d')
+    return t.rolling(period, min_periods=1).agg({value_col : 'mean'})
+
+
+def rolling_df(df, x_col='day', value_col='FL', period='3d', groupby_cols=None):
+    if groupby_cols is None:
+        groupby_cols = ['experiment_sample', 'experiment', 'sample', 'PRO', 'ALT', 'culture']
+    df_rolling = df.groupby(groupby_cols).apply(lambda x: _rolling_func(x, value_col=value_col, x_col=x_col, period=period))
+    df_rolling = df_rolling.reset_index()
+    df_rolling.dropna(inplace=True)
+    return df_rolling
 
 
 def forest_classifier(X, y):
     scaledX = StandardScaler().fit_transform(X)
-    clf = RandomForestClassifier(n_estimators=100, oob_score=True,
-                                 #max_depth=2,
+    clf1 = RandomForestClassifier(n_estimators=100, oob_score=True,
+                                  min_samples_leaf=0.01,
+                                  #max_depth=2,
                                  # random_state=0)
                                  )
+    clf = RFECV(estimator=clf1, step=1, cv=StratifiedKFold(3),
+                  scoring='f1_micro', n_jobs=-1)
     clf.fit(scaledX, y)
     print('train score', clf.score(scaledX, y))
-    print ('oob score', clf.oob_score_)
+    #print ('oob score', clf.oob_score_)
     return clf
 
 def forest_feature_importance(clf, col_names, n=10):
@@ -447,8 +540,6 @@ def forest_heatmap(clf, X, y, metadf=None, breakdown=None, func=None, ax=None):
 # ax.axvline(15)
 
 
-import sklearn.metrics as metrics
-
 
 def _calc_score_for_one_type(res, y_true, y_pred, suffix):
     precision, recall, f1, support = metrics.precision_recall_fscore_support(
@@ -477,18 +568,23 @@ def score_model(modelname, clf, X_train, y_train, X_test, y_test, return_y = Fal
     y_train_pred_pro = func(pd.Series(y_train_pred, index=y_train.index))
     y_test_pred_pro = func(pd.Series(y_test_pred, index=y_test.index))
 
-    res = {'model': modelname}
-    res['oob_score'] = clf.oob_score_
-    _calc_score_for_one_type(res, y_true=y_train, y_pred=y_train_pred, suffix='train')
-    _calc_score_for_one_type(res, y_true=y_test, y_pred=y_test_pred, suffix='test')
-    _calc_score_for_one_type(res, y_true=y_train_pro, y_pred=y_train_pred_pro, suffix='train_PRO')
-    _calc_score_for_one_type(res, y_true=y_test_pro, y_pred=y_test_pred_pro, suffix='test_PRO')
+    res = {
+        'model': modelname,
+        'n_features': clf.n_features_,
+        'orig_n_features' : X_train.columns.shape[0],
+    }
+
+    #res['oob_score'] = clf.oob_score_
+    #_calc_score_for_one_type(res, y_true=y_train, y_pred=y_train_pred, suffix='train')
+    #_calc_score_for_one_type(res, y_true=y_test, y_pred=y_test_pred, suffix='test')
+    _calc_score_for_one_type(res, y_true=y_train_pro, y_pred=y_train_pred_pro, suffix='train')
+    _calc_score_for_one_type(res, y_true=y_test_pro, y_pred=y_test_pred_pro, suffix='test')
 
     if not return_y:
         return clf, res, None
     else:
         y_train_df = pd.DataFrame(data={
-            f'{modelname}_y': y_train,
+            f'{modelname}_y': y_train_pro,
             f'{modelname}_y_PRO': y_train_pro,
             f'{modelname}_y_pred': y_train_pred,
             f'{modelname}_y_pred_PRO': y_train_pred_pro,
@@ -505,7 +601,7 @@ def score_model(modelname, clf, X_train, y_train, X_test, y_test, return_y = Fal
         return clf, res, y_df
 
 
-def ml(X, metadf, modelname, y_col='PRO'):
+def ml(X, metadf, modelname, y_col='PRO', return_y=False):
     print (modelname)
     X_train = X[X.index.str.startswith('e1') |
                 X.index.str.startswith('e3') |
@@ -523,15 +619,123 @@ def ml(X, metadf, modelname, y_col='PRO'):
     if y_col=='PRO_ALT':
         y_train = metadf_train.PRO + ',' + metadf_train.ALT
         y_test = metadf_test.PRO + ',' + metadf_test.ALT
+    elif y_col == 'ALT_PRO':
+            y_train = metadf_train.ALT + ',' + metadf_train.PRO
+            y_test = metadf_test.ALT + ',' + metadf_test.PRO
     else:
         y_train = metadf_train[y_col]
         y_test = metadf_test[y_col]
 
     clf = forest_classifier(X=X_train, y=y_train)
-    return score_model(modelname, clf, X_train, y_train, X_test, y_test)
+    return score_model(modelname, clf, X_train, y_train, X_test, y_test, return_y=return_y)
 
 
-def extract_decay(d, y_col = 'FL', x_col = 'day', scale=True):
+def _compare_models_valcol(df, value_col, resample_period_list, y_col_list, cumsummode_list,
+                   repetitions=10, return_y=False):
+    # resample first
+    stats_list = []
+    y_list = []
+    clf_list = []
+    features_list = []
+    for resample_period in resample_period_list:
+        if resample_period is not None:
+            d = resample_df(df, value_col=value_col, period=resample_period)
+        else:
+            d = df
+        metadf = get_meta(d, value_col=value_col)
+        for cumsummode in cumsummode_list:
+            # print(resample_period, value_col, cumsummode)
+            X = experiments2X(d, value_col=value_col, cumsummode=cumsummode)
+
+            resample_str = '_' + resample_period if resample_period is not None else ''
+            cumsummode_str = '_cumsum' if cumsummode else ''
+            for y_col in y_col_list:
+                modelname = f'{y_col}_{value_col}{resample_str}{cumsummode_str}'
+                for i in range(repetitions):
+                    clf, res, calc_y = ml(X=X, metadf=metadf, modelname=modelname,
+                                             y_col=y_col, return_y=return_y)
+                    res['value_col'] = value_col
+                    res['resample_period'] = resample_period
+                    res['y_col'] = y_col
+                    res['cumsum'] = cumsummode
+                    stats_list.append(res)
+                    y_list.append(calc_y)
+                    clf_list.append(clf)
+                    features_list.append(X.columns)
+
+    return stats_list, y_list, clf_list, features_list
+
+
+def compare_models(df, value_col_list, resample_period_list, y_col_list, cumsummode_list,
+                   repetitions=10, return_y=False):
+    stats_list = []
+    y_list = []
+    clf_list = []
+    features_list = []
+    for i in value_col_list:
+        res, _y_list, _clf_list, _features_list = _compare_models_valcol(df, value_col=i,
+            resample_period_list=resample_period_list,
+            y_col_list=y_col_list,
+            cumsummode_list=cumsummode_list,
+            repetitions=repetitions,
+            return_y=True
+        )
+        stats_list.extend(res)
+        y_list.extend(_y_list)
+        clf_list.extend(_clf_list)
+        features_list.extend(_features_list)
+    return stats_list, y_list, clf_list, features_list
+
+def compare_models_features(df, y_col_list, mode='', repetitions=10, return_y = False):
+    # resample first
+    stats_list = []
+    y_list = []
+    clf_list = []
+    features_list = []
+    metadf = get_meta(df, meta_col=['experiment_sample', 'experiment',
+                                       'sample', 'PRO', 'ALT', 'culture'],
+                     value_col='max')
+    X = features2X(df)
+    for y_col in y_col_list:
+        modelname = f'{y_col}_features'
+        for i in range(repetitions):
+            clf, res, calc_y = ml(X=X, metadf=metadf, modelname=modelname,
+                                  y_col=y_col, return_y=return_y)
+            res['value_col'] = 'features'
+            res['resample_period'] = 'N/A'
+            res['y_col'] = y_col
+            res['cumsum'] = False
+            stats_list.append(res)
+            y_list.append(calc_y)
+            clf_list.append(clf)
+            features_list.append(X.columns)
+
+    return stats_list, y_list, clf_list, features_list
+
+def compare_models_ts_features(df, metadf, y_col_list, mode='', repetitions=10, return_y = False):
+    # resample first
+    stats_list = []
+    y_list = []
+    clf_list = []
+    features_list = []
+    X = df
+    for y_col in y_col_list:
+        modelname = f'{y_col}_ts_features{mode}'
+        for i in range(repetitions):
+            clf, res, calc_y = ml(X=X, metadf=metadf, modelname=modelname,
+                                  y_col=y_col, return_y=return_y)
+            res['value_col'] = f'ts_features{mode}'
+            res['resample_period'] = 'N/A'
+            res['y_col'] = y_col
+            res['cumsum'] = False
+            stats_list.append(res)
+            y_list.append(calc_y)
+            clf_list.append(clf)
+            features_list.append(X.columns)
+
+    return stats_list, y_list, clf_list, features_list
+
+def extract_decline(d, y_col = 'FL', x_col = 'day', scale=True):
     y_col_orig = f'{y_col}_orig'
     d = d.reset_index()
     maxidx = d[y_col].idxmax()
@@ -550,11 +754,56 @@ def extract_decay(d, y_col = 'FL', x_col = 'day', scale=True):
     return r
 
 
-def generate_decay(df, sample_col='experiment_sample', scale=True):
-    dfd = df.groupby(sample_col).apply(lambda x: extract_decay(x, scale=scale))
+def generate_decline(df, sample_col='experiment_sample', scale=True):
+    dfd = df.groupby(sample_col).apply(lambda x: extract_decline(x, scale=scale))
     dfd.reset_index(level=0, inplace=True)
     return dfd
 
+
+def apply_fit(df, model, print_popt=True):
+    x = df['day']
+    y = df['FL']
+    p0 = [0.5, 0.5, 0.5, 0.5]
+    y_pred = 0
+    y_pred_p0 = 0
+    score = 0
+    popt = []
+    score_p0 = 0
+    popt_p0 = []
+
+    try:
+        popt, pcov = curve_fit(model, x, y, method='dogbox', loss='soft_l1', f_scale=0.1,  # p0=p0
+                               # bounds = (0, np.inf)
+                               )
+        y_pred = model(x, *popt)
+        score = metrics.r2_score(y, y_pred)
+
+    except Exception as e:
+        print(e)
+
+    try:
+        popt_p0, pcov_p0 = curve_fit(model, x, y, method='dogbox', loss='soft_l1', f_scale=0.1, p0=p0,
+                                     # bounds = (0, np.inf)
+                                     )
+        y_pred_p0 = model(x, *popt)
+        score_p0 = metrics.r2_score(y, y_pred)
+
+    except Exception as e:
+        print(e)
+
+    if score_p0 > score:
+        score = score_p0
+        y_pred = y_pred_p0
+        popt = popt_p0
+
+    if print_popt:
+        print(popt)
+
+    df['y_pred'] = y_pred
+    for i in range(len(popt)):
+        df[f'popt_{i}'] = popt[i]
+
+    return df
 
 
 #############################
@@ -599,7 +848,7 @@ def generate_decay(df, sample_col='experiment_sample', scale=True):
 #
 #     Y(t)  =  b1  –  log(1  +  b2 *exp( –  b3 *t)
 #
-# First-­‐order  Decay
+# First-­‐order  decline
 #
 #     Y(t)  =  b1 *exp(  –  b2 *t)  +  b3
 #
@@ -679,7 +928,7 @@ def model_gompertz(z, b1, b2, b3, _):
 def model_loglogistic(z, b1, b2, b3, _):
     return  b1 - np.log(1 + b2 * np.exp( -b3 * z))
 #
-# First-­‐order  Decay
+# First-­‐order  decline
 #
 #     Y(t)  =  b1 *exp(  –  b2 *t)  +  b3
 
@@ -706,23 +955,3 @@ def model_scurve(z, b1, b2, b3, _):
 # y_col_list = ['PRO', 'ALT', 'PRO_ALT']
 # cumsummode_list = [False, True]
 
-
-def compare_models(df, value_col, resample_period_list, y_col_list, cumsummode_list):
-    # resample first
-    stats_list = []
-    for resample_period in resample_period_list:
-        if resample_period is not None:
-            d = cp.resample_df(df, value_col=value_col, period=resample_period)
-        else:
-            d = df
-        metadf = cp.get_meta(d, value_col=value_col)
-        for cumsummode in cumsummode_list:
-            X = cp.experiments2X(d, value_col=value_col, cumsummode=cumsummode)
-
-            resample_str = '_' + resample_period if resample_period is not None else ''
-            cumsummode_str = '_cumsum' if cumsummode else ''
-            for y_col in y_col_list:
-                modelname = f'{y_col}_{value_col}{resample_str}{cumsummode_str}'
-                clf, res, _ = cp.ml(X=X, metadf=metadf, modelname=modelname, y_col=y_col)
-                stats_list.append(res)
-    return stats_list
