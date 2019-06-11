@@ -29,6 +29,15 @@ from scipy.optimize import least_squares
 from scipy.optimize import curve_fit
 from scipy import stats
 
+PRO_HL = ['MED4', 'MIT9312', 'MIT0604']
+PRO_LL = ['MIT9313', 'Natl2A']
+ALT_G1 = ['DE', 'DE1']
+ALT_G2 = ['1A3', 'ATCC', 'BS11']
+experiments_G1 = ['e1']
+experiments_G2 = ['e3', 'e4']
+experiments_G3 = ['e5', 'e6 ']
+
+
 def load_experiment_csvs(data_dpath=None, csv_fnames=None, meta_fnames=None):
     if data_dpath is None:
         data_dpath = r'C:\Users\wosnat\Documents\msc\work\CCPA\data_5_3_2019'
