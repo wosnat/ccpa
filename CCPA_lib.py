@@ -584,7 +584,7 @@ def score_model(modelname, clf, X_train, y_train, X_test, y_test, return_y = Fal
         return clf, res, None
     else:
         y_train_df = pd.DataFrame(data={
-            f'{modelname}_y': y_train_pro,
+            f'{modelname}_y': y_train,
             f'{modelname}_y_PRO': y_train_pro,
             f'{modelname}_y_pred': y_train_pred,
             f'{modelname}_y_pred_PRO': y_train_pred_pro,
