@@ -457,10 +457,11 @@ def add_metacols_to_pca(dfpca, df, meta_cols):
     return dfpca
 
 
-def _resample_func(df, x_col='day', value_col='FL', period='3d' ):
+def _resample_func(df, x_col='day', value_col='FL', period='1d', func='mean' ):
     t = df
     t.index = pd.to_timedelta(t[x_col], unit='d')
-    return t.resample(period).agg({value_col : 'mean'})
+    return t.resample(period).agg({value_col : func})
+
     #return t.resample(period).agg({y_col : ['mean', 'median','std']})
     #return t.rolling(period, min_periods=1).agg({y_col : ['mean', 'median','std']})
 
@@ -472,6 +473,25 @@ def resample_df(df, x_col='day', value_col='FL', period='3d', groupby_cols=None)
     df_resampled = df_resampled.reset_index()
     df_resampled.dropna(inplace=True)
     return df_resampled
+
+def _augment_func(df, augment_col, scale, keep_monotone=False, ):
+    noise = np.random.normal(size=df.shape[0], scale=scale)
+    t = df.copy()
+    t[augment_col] = t[augment_col] + noise
+    if keep_monotone:
+        s = f'{augment_col}_shift'
+        s1 = f'{augment_col}_shift-1'
+        t[s] = t[augment_col].shift()
+        t[s1] = t[augment_col].shift(-1)
+
+        t.loc[t[augment_col] > t[s1], augment_col] = t.loc[t[augment_col] > t[s1], s1]
+        t.loc[t[augment_col] < t[s] , augment_col] = t.loc[t[augment_col] < t[s] , s]
+        t.loc[t[augment_col] < 0, augment_col] = 0
+        t.loc[t[augment_col].idxmin(), augment_col] = 0
+        t.drop(columns=[s, s1])
+    return t
+
+
 
 def _rolling_func(df, x_col='day', value_col='FL', period='3d' ):
     t = df
