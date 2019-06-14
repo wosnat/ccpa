@@ -23,6 +23,7 @@ from sklearn.metrics import classification_report, accuracy_score
 #import sklearn.metrics as metrics
 from sklearn.feature_selection import RFECV
 from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.metrics import auc
 
 from scipy.optimize import least_squares
@@ -460,18 +461,21 @@ def add_metacols_to_pca(dfpca, df, meta_cols):
 def _resample_func(df, x_col='day', value_col='FL', period='1d', func='mean' ):
     t = df
     t.index = pd.to_timedelta(t[x_col], unit='d')
-    return t.resample(period).agg({value_col : func})
+    t = t.resample(period).agg({value_col : func})
+    t.index= t.index.astype('timedelta64[D]')
+    return t
 
     #return t.resample(period).agg({y_col : ['mean', 'median','std']})
     #return t.rolling(period, min_periods=1).agg({y_col : ['mean', 'median','std']})
 
 
-def resample_df(df, x_col='day', value_col='FL', period='3d', groupby_cols=None):
+def resample_df(df, x_col='day', value_col='FL', period='1d', groupby_cols=None, dropna=True):
     if groupby_cols is None:
         groupby_cols = ['experiment_sample', 'experiment', 'sample', 'PRO', 'ALT', 'culture']
     df_resampled = df.groupby(groupby_cols).apply(lambda x: _resample_func(x, value_col=value_col, x_col=x_col, period=period))
     df_resampled = df_resampled.reset_index()
-    df_resampled.dropna(inplace=True)
+    if dropna:
+        df_resampled.dropna(inplace=True)
     return df_resampled
 
 def _augment_func(df, augment_col, scale, keep_monotone=False, ):
@@ -484,12 +488,100 @@ def _augment_func(df, augment_col, scale, keep_monotone=False, ):
         t[s] = t[augment_col].shift()
         t[s1] = t[augment_col].shift(-1)
 
-        t.loc[t[augment_col] > t[s1], augment_col] = t.loc[t[augment_col] > t[s1], s1]
-        t.loc[t[augment_col] < t[s] , augment_col] = t.loc[t[augment_col] < t[s] , s]
+        t.loc[t[augment_col] > t[s1], augment_col] = t.loc[t[augment_col] > t[s1], s1] - 0.1
+        t.loc[t[augment_col] < t[s], augment_col] = t.loc[t[augment_col] < t[s], s] + 0.1
+
         t.loc[t[augment_col] < 0, augment_col] = 0
         t.loc[t[augment_col].idxmin(), augment_col] = 0
-        t.drop(columns=[s, s1])
+        t.drop(columns=[s, s1], inplace=True)
     return t
+
+
+def resample_augment_series(df, augment_name, resample_func, period='1d', value_col='FL'):
+    df1 = _resample_func(df, value_col=value_col, period=period, func=resample_func)
+    df1.loc[:, 'augment_name'] = f'{augment_name}_{resample_func}'
+    return df1
+
+def augment_series_one_col(df, augment_col='FL', value_col='FL', period='1d',
+                           scale=0.05, keep_monotone=False, resample_funcs=None,
+                           rolling_period=None, i=''):
+    if resample_funcs is None:
+        resample_funcs = ['mean', 'median', 'min', 'max', 'first', 'last']
+
+    if rolling_period is not None:
+        df1 = _rolling_func(df, x_col='day', value_col=value_col, period=rolling_period)
+        rolling_str = f'_roll{rolling_period}'
+    else:
+        df1 = df
+        rolling_str = ''
+
+    if augment_col is not None:
+        res_df = _augment_func(df, augment_col=augment_col, scale=scale, keep_monotone=keep_monotone)
+        augment_name = f'{augment_col}_{scale}_{i}{rolling_str}'
+    else:
+        res_df = df
+        augment_name = f'original{rolling_str}'
+
+    augmented_dfs = [resample_augment_series(res_df, augment_name, value_col=value_col, period=period, resample_func=f)
+                     for f in resample_funcs]
+    return augmented_dfs
+
+
+def augment_series(df, x_col='day', value_col='FL', period='1d', add_original=True, noise_N=1, rolling_period=None):
+    augmented_dfs = []
+    if add_original:
+        augmented_dfs.extend(augment_series_one_col(df, augment_col=None,
+                                                    scale=0.05,
+                                                    keep_monotone=False,
+                                                    value_col=value_col,
+                                                    rolling_period=rolling_period))
+    for i in range(noise_N):
+        augmented_dfs.extend(augment_series_one_col(df, augment_col=value_col,
+                                                    scale=0.05,
+                                                    keep_monotone=False,
+                                                    value_col=value_col,
+                                                    rolling_period=rolling_period, i=i))
+        augmented_dfs.extend(augment_series_one_col(df, augment_col=x_col,
+                                                    scale=0.5,
+                                                    keep_monotone=True,
+                                                    value_col=value_col,
+                                                    rolling_period=rolling_period, i=i))
+
+    return (pd.concat(augmented_dfs))
+
+def augment_series_with_rolling(df, x_col='day', value_col='FL', period='1d',
+                                add_original=True, noise_N=1, rolling_period='1d'):
+    df1 = augment_series(df, x_col=x_col, value_col=value_col, period=period,
+                                add_original=add_original, noise_N=noise_N, rolling_period=None)
+    if rolling_period is not None:
+        df2 = augment_series(df, x_col=x_col, value_col=value_col, period=period,
+                                add_original=add_original, noise_N=noise_N, rolling_period=rolling_period)
+        return pd.concat([df1, df2])
+    else:
+        return df1
+
+def augment_training(df, groupby_cols=None, noise_N=1):
+    if groupby_cols is None:
+        groupby_cols = ['experiment_sample', 'experiment', 'sample', 'PRO', 'ALT', 'culture']
+    ds = df.groupby(groupby_cols).apply(lambda x : augment_series_with_rolling(x,noise_N=noise_N)).reset_index()
+    ds['experiment_sample_orig'] = ds.experiment_sample
+    ds.experiment_sample = ds.experiment_sample + ', ' + ds.augment_name
+
+    return ds
+
+
+def split_train_test(df, meta_col=None, value_col='FL', test_size=0.3):
+    metadf = get_meta(df, meta_col=meta_col, value_col=value_col)
+    metadf['y'] = metadf.PRO + metadf.ALT
+    sss = StratifiedShuffleSplit(n_splits=1, test_size=test_size)
+    s = sss.split(metadf['y'], metadf['y'])
+    for (train_idx, test_idx) in s:
+        pass
+    train = metadf.loc[train_idx, 'experiment_sample'].reset_index(drop=True)
+    test = metadf.loc[test_idx, 'experiment_sample'].reset_index(drop=True)
+    train_df = df.loc[df.experiment_sample.isin(train)]
+    test_df = df.loc[df.experiment_sample.isin(test)]
+    return train_df, test_df
 
 
 
