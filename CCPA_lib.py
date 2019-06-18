@@ -438,8 +438,11 @@ def features2X(df, meta_cols=None):
     X.fillna(value=0, inplace=True)
     return X
 
-def experiments2X(df, sample_col='experiment_sample', value_col='logFL', x_col='day', cumsummode=True):
-    d = df.dropna(subset=[value_col])
+def experiments2X(df, sample_col='experiment_sample', value_col='logFL', x_col='day', cumsummode=True, dropna=True):
+    if dropna:
+        d = df.dropna(subset=[value_col])
+    else:
+        d = df
     X = d.pivot(index=sample_col, columns=x_col, values=value_col)
     if X.columns.dtype == '<m8[ns]':
         X.columns = X.columns.astype('timedelta64[D]')
@@ -478,10 +481,13 @@ def resample_df(df, x_col='day', value_col='FL', period='1d', groupby_cols=None,
         df_resampled.dropna(inplace=True)
     return df_resampled
 
-def _augment_func(df, augment_col, scale, keep_monotone=False, ):
-    noise = np.random.normal(size=df.shape[0], scale=scale)
+def _augment_func(df, augment_col, scale, keep_monotone=False, increment=False):
     t = df.copy()
-    t[augment_col] = t[augment_col] + noise
+    if increment:
+        t[augment_col] = t[augment_col] + scale
+    else:
+        noise = np.random.normal(size=df.shape[0], scale=scale)
+        t[augment_col] = t[augment_col] + noise
     if keep_monotone:
         s = f'{augment_col}_shift'
         s1 = f'{augment_col}_shift-1'
@@ -504,22 +510,25 @@ def resample_augment_series(df, augment_name, resample_func, period='1d', value_
 
 def augment_series_one_col(df, augment_col='FL', value_col='FL', period='1d',
                            scale=0.05, keep_monotone=False, resample_funcs=None,
-                           rolling_period=None, i=''):
+                           rolling_period=None, increment=False, i=''):
     if resample_funcs is None:
         resample_funcs = ['mean', 'median', 'min', 'max', 'first', 'last']
 
+    rolling_str = ''
+    df1 = df
     if rolling_period is not None:
-        df1 = _rolling_func(df, x_col='day', value_col=value_col, period=rolling_period)
         rolling_str = f'_roll{rolling_period}'
-    else:
-        df1 = df
-        rolling_str = ''
+        df1 = _rolling_func(df, x_col='day', value_col=value_col, period=rolling_period).reset_index()
+
+    if increment:
+        rolling_str += '_inc'
 
     if augment_col is not None:
-        res_df = _augment_func(df, augment_col=augment_col, scale=scale, keep_monotone=keep_monotone)
+        res_df = _augment_func(df1, augment_col=augment_col, scale=scale,
+                               keep_monotone=keep_monotone, increment=increment)
         augment_name = f'{augment_col}_{scale}_{i}{rolling_str}'
     else:
-        res_df = df
+        res_df = df1
         augment_name = f'original{rolling_str}'
 
     augmented_dfs = [resample_augment_series(res_df, augment_name, value_col=value_col, period=period, resample_func=f)
@@ -543,6 +552,17 @@ def augment_series(df, x_col='day', value_col='FL', period='1d', add_original=Tr
                                                     rolling_period=rolling_period, i=i))
         augmented_dfs.extend(augment_series_one_col(df, augment_col=x_col,
                                                     scale=0.5,
+                                                    keep_monotone=True,
+                                                    value_col=value_col,
+                                                    rolling_period=rolling_period, i=i))
+        augmented_dfs.extend(augment_series_one_col(df, augment_col=value_col,
+                                                    scale=0.1,
+                                                    keep_monotone=False,
+                                                    value_col=value_col,
+                                                    rolling_period=rolling_period, i=i))
+        augmented_dfs.extend(augment_series_one_col(df, augment_col=x_col,
+                                                    scale=0.5,
+                                                    increment= True,
                                                     keep_monotone=True,
                                                     value_col=value_col,
                                                     rolling_period=rolling_period, i=i))
@@ -588,7 +608,9 @@ def split_train_test(df, meta_col=None, value_col='FL', test_size=0.3):
 def _rolling_func(df, x_col='day', value_col='FL', period='3d' ):
     t = df
     t.index = pd.to_timedelta(t[x_col], unit='d')
-    return t.rolling(period, min_periods=1).agg({value_col : 'mean'})
+    t = t.rolling(period, min_periods=1).agg({value_col : 'mean'})
+    t.index= t.index.astype('timedelta64[D]')
+    return t
 
 
 def rolling_df(df, x_col='day', value_col='FL', period='3d', groupby_cols=None):
@@ -602,16 +624,16 @@ def rolling_df(df, x_col='day', value_col='FL', period='3d', groupby_cols=None):
 
 def forest_classifier(X, y):
     scaledX = StandardScaler().fit_transform(X)
-    clf1 = RandomForestClassifier(n_estimators=100, oob_score=True,
-                                  min_samples_leaf=0.01,
+    clf = RandomForestClassifier(n_estimators=100, oob_score=True,
+                                  #min_samples_leaf=0.01,
                                   #max_depth=2,
                                  # random_state=0)
                                  )
-    clf = RFECV(estimator=clf1, step=1, cv=StratifiedKFold(3),
-                  scoring='f1_micro', n_jobs=-1)
+    #clf = RFECV(estimator=clf1, step=1, cv=StratifiedKFold(3),
+    #              scoring='f1_micro', n_jobs=-1)
     clf.fit(scaledX, y)
     print('train score', clf.score(scaledX, y))
-    #print ('oob score', clf.oob_score_)
+    print ('oob score', clf.oob_score_)
     return clf
 
 def forest_feature_importance(clf, col_names, n=10):
