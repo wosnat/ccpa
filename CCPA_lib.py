@@ -75,7 +75,7 @@ def load_experiment_csvs(data_dpath=None, csv_fnames=None, meta_fnames=None):
     df = pd.concat(merged_dfs)
     return df
 
-def update_calculated_fields(df, group_col=None, min_fl=0.05):
+def update_calculated_fields(df, group_col=None, min_fl=0.05, add_experiment_sample=True):
     if group_col is None:
         group_col = ['experiment', 'sample']
     df.loc[:, 'FL_orig'] = df.FL
@@ -91,7 +91,8 @@ def update_calculated_fields(df, group_col=None, min_fl=0.05):
     df.loc[:, 'diffday'] = df.groupby(group_col).day.transform(pd.Series.diff)
     df.loc[:, 'rateFL'] = df.diffFL / df.diffday
     df.loc[:, 'ratelogFL'] = df.difflogFL / df.diffday
-    df.loc[:, 'experiment_sample'] = df.experiment + ', ' + df['sample']
+    if add_experiment_sample:
+        df.loc[:, 'experiment_sample'] = df.experiment + ', ' + df['sample']
 
     return df
 
@@ -189,6 +190,7 @@ def fit_regression(df, x_col, y_col):
 
 
 def analyze_half_curve(df, label, max_val, min_val, x_col, y_col, y_logcol, rate_col, rate_logcol):
+    df = df.dropna(subset=[y_col])
     half_day,     half_val    = find_midpoint(df, max_val, min_val, x_col, y_col, 0.5)
     loghalf_day,  loghalf_val = find_midpoint(df, np.log(max_val), np.log(min_val), x_col, y_logcol, 0.5)
     tenth_day,    tenth_val   = find_midpoint(df, max_val, min_val, x_col, y_col, 0.1)
@@ -585,7 +587,7 @@ def augment_training(df, groupby_cols=None, noise_N=1):
         groupby_cols = ['experiment_sample', 'experiment', 'sample', 'PRO', 'ALT', 'culture']
     ds = df.groupby(groupby_cols).apply(lambda x : augment_series_with_rolling(x,noise_N=noise_N)).reset_index()
     ds['experiment_sample_orig'] = ds.experiment_sample
-    ds.experiment_sample = ds.experiment_sample + ', ' + ds.augment_name
+    ds.loc[:, 'experiment_sample'] = ds.experiment_sample + ', ' + ds.augment_name
 
     return ds
 
@@ -697,7 +699,7 @@ def _calc_score_for_one_type(res, y_true, y_pred, suffix):
     res[f'support_{suffix}'] = support
 
 
-def score_model(modelname, clf, X_train, y_train, X_test, y_test, return_y = False):
+def score_model(modelname, clf, X_train, y_train, X_test, y_test, return_y = False, return_features=False):
     func = lambda x: x.str.split(',', expand=True)[0]
     scalar = StandardScaler()
     scaledX_train = scalar.fit_transform(X_train)
@@ -723,8 +725,11 @@ def score_model(modelname, clf, X_train, y_train, X_test, y_test, return_y = Fal
     _calc_score_for_one_type(res, y_true=y_train_pro, y_pred=y_train_pred_pro, suffix='train')
     _calc_score_for_one_type(res, y_true=y_test_pro, y_pred=y_test_pred_pro, suffix='test')
 
+    features = None
+    if return_features:
+        features = X_train.columns
     if not return_y:
-        return clf, res, None
+        return clf, res, None, features
     else:
         y_train_df = pd.DataFrame(data={
             f'{modelname}_y': y_train,
@@ -741,7 +746,7 @@ def score_model(modelname, clf, X_train, y_train, X_test, y_test, return_y = Fal
         }, index=y_test.index)
         y_test_df['Type'] = 'Test'
         y_df = pd.concat([y_train_df, y_test_df])
-        return clf, res, y_df
+        return clf, res, y_df, features
 
 
 def ml(X, metadf, modelname, y_col='PRO', return_y=False):
@@ -878,6 +883,90 @@ def compare_models_ts_features(df, metadf, y_col_list, mode='', repetitions=10, 
 
     return stats_list, y_list, clf_list, features_list
 
+#############################################################################
+
+def ml2(modelname, train_df, test_df, value_col,  y_col='PRO', return_y=False, repetitions=10, features_mode=False):
+    print (modelname)
+    if features_mode:
+        X_train = features2X(train_df)
+        X_test = features2X(test_df)
+        meta_col = ['experiment_sample', 'experiment',
+                    'sample', 'PRO', 'ALT', 'culture']
+        metadf_train = get_meta(train_df, meta_col=meta_col, value_col='max')
+        metadf_test = get_meta(test_df, meta_col=meta_col, value_col='max')
+    else:
+        X_train = experiments2X(train_df, cumsummode=False, value_col=value_col)
+        X_test = experiments2X(test_df, cumsummode=False, value_col=value_col)
+        metadf_train = get_meta(train_df)
+        metadf_test = get_meta(test_df)
+
+    metadf_train.index = metadf_train.experiment_sample
+    metadf_test.index = metadf_test.experiment_sample
+
+    if y_col=='PRO_ALT':
+        y_train = metadf_train.PRO + ',' + metadf_train.ALT
+        y_test = metadf_test.PRO + ',' + metadf_test.ALT
+    elif y_col == 'ALT_PRO':
+            y_train = metadf_train.ALT + ',' + metadf_train.PRO
+            y_test = metadf_test.ALT + ',' + metadf_test.PRO
+    else:
+        y_train = metadf_train[y_col]
+        y_test = metadf_test[y_col]
+
+    res = []
+    for i in range(repetitions):
+        clf = forest_classifier(X=X_train, y=y_train)
+        res.append(score_model(modelname, clf, X_train, y_train, X_test, y_test,
+                               return_y=return_y, return_features=True))
+    return res
+
+
+def _compare_models2_valcol(train_df, test_df, value_col,  y_col_list,
+                   repetitions=10, return_y=False, features_mode=False, modestr=''):
+    # resample first
+    stats_list = []
+    y_list = []
+    clf_list = []
+    features_list = []
+
+    for y_col in y_col_list:
+        modelname = f'{modestr}{y_col}_{value_col}'
+        res_list = ml2(modelname=modelname, train_df=train_df, test_df=test_df, value_col=value_col,
+                       y_col=y_col, return_y=return_y, repetitions=repetitions, features_mode=features_mode)
+        for clf, res, calc_y, _features in res_list:
+            res['value_col'] = value_col
+            res['y_col'] = y_col
+            stats_list.append(res)
+            y_list.append(calc_y)
+            clf_list.append(clf)
+            features_list.append(_features)
+
+    return stats_list, y_list, clf_list, features_list
+
+
+def compare_models2(train_df, test_df, value_col_list, y_col_list,
+                   repetitions=10, return_y=False, features_mode=False, modestr=''):
+    stats_list = []
+    y_list = []
+    clf_list = []
+    features_list = []
+    for i in value_col_list:
+        res, _y_list, _clf_list, _features_list = _compare_models2_valcol(train_df, test_df, value_col=i,
+            y_col_list=y_col_list,
+            repetitions=repetitions,
+            return_y=return_y,
+            features_mode=features_mode,
+            modestr=modestr,
+        )
+        stats_list.extend(res)
+        y_list.extend(_y_list)
+        clf_list.extend(_clf_list)
+        features_list.extend(_features_list)
+    return stats_list, y_list, clf_list, features_list
+
+
+############################################################################
+
 def extract_decline(d, y_col = 'FL', x_col = 'day', scale=True):
     y_col_orig = f'{y_col}_orig'
     d = d.reset_index()
@@ -896,6 +985,20 @@ def extract_decline(d, y_col = 'FL', x_col = 'day', scale=True):
         r[c] = d[c].unique()[0]
     return r
 
+def add_exponential(df):
+    n = 'exponential'
+    f = model_exponential
+    t = df.groupby('experiment_sample').apply(lambda x: apply_fit(x, f, print_popt=False))
+    df[n] = t['y_pred']
+    for i in range(3):
+        df[f'popt_{i}'] = t[f'popt_{i}']
+    df['decline'] = df.FL
+    df['exponential_diff'] = df.FL - df.exponential
+    df['decline_scaled'] = df.groupby('experiment_sample').FL.transform(lambda x: x / x.max())
+    df_exp_coef = df.groupby(['experiment_sample', 'popt_0', 'popt_1', 'popt_2'])['decline'].count().reset_index(
+        level=[1, 2, 3]) \
+        .drop(columns='decline')
+    return df, df_exp_coef
 
 def generate_decline(df, sample_col='experiment_sample', scale=True):
     dfd = df.groupby(sample_col).apply(lambda x: extract_decline(x, scale=scale))
@@ -904,8 +1007,9 @@ def generate_decline(df, sample_col='experiment_sample', scale=True):
 
 
 def apply_fit(df, model, print_popt=True):
-    x = df['day']
-    y = df['FL']
+    d = df.dropna(subset=['FL'])
+    x = d['day']
+    y = d['FL']
     p0 = [0.5, 0.5, 0.5, 0.5]
     y_pred = 0
     y_pred_p0 = 0
@@ -918,8 +1022,11 @@ def apply_fit(df, model, print_popt=True):
         popt, pcov = curve_fit(model, x, y, method='dogbox', loss='soft_l1', f_scale=0.1,  # p0=p0
                                # bounds = (0, np.inf)
                                )
-        y_pred = model(x, *popt)
-        score = metrics.r2_score(y, y_pred)
+        y_pred = model(df['day'], *popt)
+        t =df
+        t['y_pred'] = y_pred
+        t = t.dropna(subset=['FL'])
+        score = metrics.r2_score(t['FL'], t['y_pred'])
 
     except Exception as e:
         print(e)
@@ -928,11 +1035,29 @@ def apply_fit(df, model, print_popt=True):
         popt_p0, pcov_p0 = curve_fit(model, x, y, method='dogbox', loss='soft_l1', f_scale=0.1, p0=p0,
                                      # bounds = (0, np.inf)
                                      )
-        y_pred_p0 = model(x, *popt)
-        score_p0 = metrics.r2_score(y, y_pred)
+        y_pred_p0 = model(df['day'], *popt)
+        t =df
+        t['y_pred'] = y_pred_p0
+        t = t.dropna(subset=['FL'])
+        score_p0 = metrics.r2_score(t['FL'], t['y_pred'])
 
     except Exception as e:
         print(e)
+
+    if ((score == 0) and (score_p0 == 0)):
+        # try one more time
+        try:
+            popt, pcov = curve_fit(model, x, y, method='dogbox', loss='soft_l1', f_scale=0.1,  # p0=p0
+                                   # bounds = (0, np.inf)
+                                   )
+            y_pred = model(df['day'], *popt)
+            t = df
+            t['y_pred'] = y_pred
+            t = t.dropna(subset=['FL'])
+            score = metrics.r2_score(t['FL'], t['y_pred'])
+
+        except Exception as e:
+            print(e)
 
     if score_p0 > score:
         score = score_p0
