@@ -538,7 +538,8 @@ def augment_series_one_col(df, augment_col='FL', value_col='FL', period='1d',
     return augmented_dfs
 
 
-def augment_series(df, x_col='day', value_col='FL', period='1d', add_original=True, noise_N=1, rolling_period=None):
+def augment_series(df, x_col='day', value_col='FL', period='1d', add_original=True, noise_N=1, rolling_period=None,
+                   augment_x = True):
     augmented_dfs = []
     if add_original:
         augmented_dfs.extend(augment_series_one_col(df, augment_col=None,
@@ -552,49 +553,57 @@ def augment_series(df, x_col='day', value_col='FL', period='1d', add_original=Tr
                                                     keep_monotone=False,
                                                     value_col=value_col,
                                                     rolling_period=rolling_period, i=i))
-        augmented_dfs.extend(augment_series_one_col(df, augment_col=x_col,
-                                                    scale=0.5,
-                                                    keep_monotone=True,
-                                                    value_col=value_col,
-                                                    rolling_period=rolling_period, i=i))
         augmented_dfs.extend(augment_series_one_col(df, augment_col=value_col,
                                                     scale=0.1,
                                                     keep_monotone=False,
                                                     value_col=value_col,
                                                     rolling_period=rolling_period, i=i))
-        augmented_dfs.extend(augment_series_one_col(df, augment_col=x_col,
-                                                    scale=0.5,
-                                                    increment= True,
-                                                    keep_monotone=True,
-                                                    value_col=value_col,
-                                                    rolling_period=rolling_period, i=i))
+        if augment_x:
+            augmented_dfs.extend(augment_series_one_col(df, augment_col=x_col,
+                                                        scale=0.5,
+                                                        keep_monotone=True,
+                                                        value_col=value_col,
+                                                        rolling_period=rolling_period, i=i))
+            augmented_dfs.extend(augment_series_one_col(df, augment_col=x_col,
+                                                        scale=0.5,
+                                                        increment= True,
+                                                        keep_monotone=True,
+                                                        value_col=value_col,
+                                                        rolling_period=rolling_period, i=i))
 
     return (pd.concat(augmented_dfs))
 
 def augment_series_with_rolling(df, x_col='day', value_col='FL', period='1d',
-                                add_original=True, noise_N=1, rolling_period='1d'):
+                                add_original=True, noise_N=1, rolling_period='1d',
+                                augment_x = True):
     df1 = augment_series(df, x_col=x_col, value_col=value_col, period=period,
-                                add_original=add_original, noise_N=noise_N, rolling_period=None)
+                                add_original=add_original, noise_N=noise_N, rolling_period=None,
+                         augment_x=augment_x)
     if rolling_period is not None:
         df2 = augment_series(df, x_col=x_col, value_col=value_col, period=period,
-                                add_original=add_original, noise_N=noise_N, rolling_period=rolling_period)
+                                add_original=add_original, noise_N=noise_N, rolling_period=rolling_period,
+                             augment_x=augment_x)
         return pd.concat([df1, df2])
     else:
         return df1
 
-def augment_training(df, groupby_cols=None, noise_N=1):
+def augment_training(df, groupby_cols=None, noise_N=1, augment_x = True):
     if groupby_cols is None:
         groupby_cols = ['experiment_sample', 'experiment', 'sample', 'PRO', 'ALT', 'culture']
-    ds = df.groupby(groupby_cols).apply(lambda x : augment_series_with_rolling(x,noise_N=noise_N)).reset_index()
+    ds = df.groupby(groupby_cols).apply(lambda x : augment_series_with_rolling(x,noise_N=noise_N, augment_x=augment_x)).reset_index()
     ds['experiment_sample_orig'] = ds.experiment_sample
     ds.loc[:, 'experiment_sample'] = ds.experiment_sample + ', ' + ds.augment_name
 
     return ds
 
 
-def split_train_test(df, meta_col=None, value_col='FL', test_size=0.3):
+def split_train_test(df, meta_col=None, value_col='FL', test_size=0.3, y_col=None):
     metadf = get_meta(df, meta_col=meta_col, value_col=value_col)
-    metadf['y'] = metadf.PRO + metadf.ALT
+    if y_col is not None:
+        metadf['y'] = metadf[y_col]
+    else:
+        metadf['y'] = metadf.PRO + metadf.ALT
+
     sss = StratifiedShuffleSplit(n_splits=1, test_size=test_size)
     s = sss.split(metadf['y'], metadf['y'])
     for (train_idx, test_idx) in s:
