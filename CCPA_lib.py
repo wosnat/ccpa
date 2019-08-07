@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+
 from sklearn.preprocessing import StandardScaler
 from matplotlib.colors import ListedColormap
 from mpl_toolkits.mplot3d import Axes3D
@@ -388,6 +390,19 @@ def run_pca(X, metadf, sample_col='experiment_sample', n_components=2):
     principalDf.set_index(X.index, inplace=True)
     dfpca = pd.merge(left=principalDf, left_index=True, right=metadf, right_on=sample_col)
     return dfpca
+
+def run_tsne(X, metadf, sample_col='experiment_sample', n_components=2):
+    scaledX = StandardScaler().fit_transform(X)
+    tsne = TSNE(n_components=n_components, method='exact')
+    principalComponents = tsne.fit_transform(scaledX)
+    #print('Variance percent explained\n', tsne.explained_variance_ratio_)
+    tsne_columns = [f'SNE{i}' for i in range(1,n_components+1)]
+    principalDf = pd.DataFrame(data = principalComponents
+                 , columns = tsne_columns)
+    principalDf.set_index(X.index, inplace=True)
+    dfpca = pd.merge(left=principalDf, left_index=True, right=metadf, right_on=sample_col)
+    return dfpca
+
 
 
 def display_pca_3d(dfpca, color_col, style_col):
