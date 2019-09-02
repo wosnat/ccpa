@@ -1030,9 +1030,9 @@ def generate_decline(df, sample_col='experiment_sample', scale=True):
     return dfd
 
 
-def apply_fit(df, model, print_popt=True):
+def apply_fit(df, model, print_popt=True, x_col='day'):
     d = df.dropna(subset=['FL'])
-    x = d['day']
+    x = d[x_col]
     y = d['FL']
     p0 = [0.5, 0.5, 0.5, 0.5]
     y_pred = 0
@@ -1046,7 +1046,7 @@ def apply_fit(df, model, print_popt=True):
         popt, pcov = curve_fit(model, x, y, method='dogbox', loss='soft_l1', f_scale=0.1,  # p0=p0
                                # bounds = (0, np.inf)
                                )
-        y_pred = model(df['day'], *popt)
+        y_pred = model(df[x_col], *popt)
         t =df
         t['y_pred'] = y_pred
         t = t.dropna(subset=['FL'])
@@ -1059,7 +1059,7 @@ def apply_fit(df, model, print_popt=True):
         popt_p0, pcov_p0 = curve_fit(model, x, y, method='dogbox', loss='soft_l1', f_scale=0.1, p0=p0,
                                      # bounds = (0, np.inf)
                                      )
-        y_pred_p0 = model(df['day'], *popt)
+        y_pred_p0 = model(df[x_col], *popt)
         t =df
         t['y_pred'] = y_pred_p0
         t = t.dropna(subset=['FL'])
@@ -1074,7 +1074,7 @@ def apply_fit(df, model, print_popt=True):
             popt, pcov = curve_fit(model, x, y, method='dogbox', loss='soft_l1', f_scale=0.1,  # p0=p0
                                    # bounds = (0, np.inf)
                                    )
-            y_pred = model(df['day'], *popt)
+            y_pred = model(df[x_col], *popt)
             t = df
             t['y_pred'] = y_pred
             t = t.dropna(subset=['FL'])
@@ -1149,7 +1149,12 @@ def apply_fit(df, model, print_popt=True):
 
 def model_exponential(z, a1, b1, c1, _):
     return (
-        (a1 * np.exp(-b1 * z) + c1)
+        (np.exp(a1 * z) + c1)
+    )
+
+def model_exponential_decline(z, a1, b1, c1, _):
+    return (
+        (np.exp(-a1 * z) + c1)
     )
 
 def model_harmonic(z, a1, b1, c1, _):
