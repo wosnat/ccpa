@@ -391,10 +391,11 @@ def run_pca(X, metadf, sample_col='experiment_sample', n_components=2):
     dfpca = pd.merge(left=principalDf, left_index=True, right=metadf, right_on=sample_col)
     return dfpca
 
-def run_tsne(X, metadf, sample_col='experiment_sample', n_components=2):
+def run_tsne(X, metadf, sample_col='experiment_sample', n_components=2, perplexity=30):
     scaledX = StandardScaler().fit_transform(X)
-    tsne = TSNE(n_components=n_components, method='exact')
+    tsne = TSNE(n_components=n_components, method='exact', init='pca', perplexity=perplexity)
     principalComponents = tsne.fit_transform(scaledX)
+    print(tsne.kl_divergence_)
     #print('Variance percent explained\n', tsne.explained_variance_ratio_)
     tsne_columns = [f'SNE{i}' for i in range(1,n_components+1)]
     principalDf = pd.DataFrame(data = principalComponents
