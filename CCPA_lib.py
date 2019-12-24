@@ -258,12 +258,14 @@ def analyze_curve(df, x_col='day', y_col='FL', y_logcol='logFL', rate_col='rateF
     minlogval = df[y_logcol].min()
     maxidx = df[y_col].idxmax()
     maxday = df.loc[maxidx][x_col]
+    aucval =  metrics.auc(df[x_col], df[y_col])
     res = {
         'max' : maxval,
         'max_log' : maxlogval,
         'max_day' : maxday,
         'min' : minval,
         'min_log' : minlogval,
+        'auc' : aucval,
     }
     for c in meta_col:
         res[c] = df[c].unique()[0]
