@@ -1056,20 +1056,20 @@ def apply_fit(df, model, print_popt=True, x_col='day'):
         score = metrics.r2_score(t['FL'], t['y_pred'])
 
     except Exception as e:
-        print(e)
+        print('first fit:', e)
 
     try:
         popt_p0, pcov_p0 = curve_fit(model, x, y, method='dogbox', loss='soft_l1', f_scale=0.1, p0=p0,
                                      # bounds = (0, np.inf)
                                      )
-        y_pred_p0 = model(df[x_col], *popt)
+        y_pred_p0 = model(df[x_col], *popt_p0)
         t =df
         t['y_pred'] = y_pred_p0
         t = t.dropna(subset=['FL'])
         score_p0 = metrics.r2_score(t['FL'], t['y_pred'])
 
     except Exception as e:
-        print(e)
+        print('fit with initial:', e)
 
     if ((score == 0) and (score_p0 == 0)):
         # try one more time
@@ -1084,7 +1084,21 @@ def apply_fit(df, model, print_popt=True, x_col='day'):
             score = metrics.r2_score(t['FL'], t['y_pred'])
 
         except Exception as e:
-            print(e)
+            print('second try:', e)
+    if ((score == 0) and (score_p0 == 0)):
+        # try one more time
+        try:
+            popt, pcov = curve_fit(model, x, y, method='dogbox', loss='soft_l1', f_scale=0.1,  # p0=p0
+                                   # bounds = (0, np.inf)
+                                   )
+            y_pred = model(df[x_col], *popt)
+            t = df
+            t['y_pred'] = y_pred
+            t = t.dropna(subset=['FL'])
+            score = metrics.r2_score(t['FL'], t['y_pred'])
+
+        except Exception as e:
+            print('third try:', e)
 
     if score_p0 > score:
         score = score_p0
@@ -1152,22 +1166,30 @@ def apply_fit(df, model, print_popt=True, x_col='day'):
 
 def model_exponential(z, a1, b1, c1, _):
     return (
-        (np.exp(a1 * z) + c1)
+        (b1*np.exp(-a1 * z))
     )
 
 def model_exponential_decline(z, a1, b1, c1, _):
     return (
-        (np.exp(-a1 * z) + c1)
+        (np.exp(-a1 * z) + b1)
     )
 
 def model_harmonic(z, a1, b1, c1, _):
+# Harmonic:     The decline rate a varies linearly with q.
+#               q = q0 / (1 + a * t)
     return (
-        ((a1 / (1 + b1 * z)) + c1)
+        (b1 / (1 + a1 * z))
     )
 
 def model_hyperbolic(z, a1, b1, c1, d1):
+# Hyperbolic:   The decline rate a varies geometrically with q
+#               q = q0 / (1 + d*a*t)^(1/d)
+    if a1 == 0:
+        # avoid divide by zero errors
+        return z*0
     return (
-        ((a1 / np.power((1 + d1 * b1 * z), d1)) + c1)
+
+        (c1 / np.power((1 + a1 * b1 * z), (1/a1)))
     )
 
 def model5(z,  # s1, #s2, s3,
