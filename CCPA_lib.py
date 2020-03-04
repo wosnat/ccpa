@@ -1116,7 +1116,9 @@ def apply_fit(df, model, print_popt=True, x_col='day'):
 
     return df
 
-
+def apply_fit1_minus1(df, model1, print_popt=True, x_col='day'):
+    model = lambda z, a1, b1, c1, d1: model1(z,a1,b1,c1,d1) - 1
+    return apply_fit1(df, model, print_popt, x_col)
 
 def apply_fit1(df, model1, print_popt=True, x_col='day'):
     d = df.dropna(subset=['FL'])
@@ -1275,12 +1277,6 @@ def model_harmonic(z, a1, b1, c1, _):
         (b1 / (1 + a1 * z))
     )
 
-def model_harmonic1(z, a1, b1, c1, _):
-# Harmonic:     The decline rate a varies linearly with q.
-#               q = q0 / (1 + a * t)
-    return (
-        (z[0] / (1 + a1 * z))
-    )
 
 
 def model_hyperbolic(z, a1, b1, c1, d1):
