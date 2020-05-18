@@ -27,6 +27,7 @@ from sklearn.feature_selection import RFECV
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.metrics import auc
+import statsmodels.api as sm
 
 from scipy.optimize import least_squares
 from scipy.optimize import curve_fit
@@ -384,6 +385,18 @@ def _calculate_exponential_diff_features(df, x_col='day', y_col='exponential_dif
 
 
 def run_pca(X, metadf, sample_col='experiment_sample', n_components=2):
+    scaledX = StandardScaler().fit_transform(X)
+    pca = PCA(n_components=n_components)
+    principalComponents = pca.fit_transform(scaledX)
+    print('Variance percent explained\n', pca.explained_variance_ratio_)
+    pca_columns = [f'PCA{i}' for i in range(1,n_components+1)]
+    principalDf = pd.DataFrame(data = principalComponents
+                 , columns = pca_columns)
+    principalDf.set_index(X.index, inplace=True)
+    dfpca = pd.merge(left=principalDf, left_index=True, right=metadf, right_on=sample_col)
+    return dfpca
+
+def run_nmds(X, metadf, sample_col='experiment_sample', n_components=2):
     scaledX = StandardScaler().fit_transform(X)
     pca = PCA(n_components=n_components)
     principalComponents = pca.fit_transform(scaledX)
@@ -1360,6 +1373,75 @@ def model_scurve(z, b1, b2, b3, _):
     return b1 * (1 - 1 / (1 + np.exp(-b2 * z))) + b3
 
 
+###############
+####
+# cell numbers from FL
+def _load_fcm_fl_csv(data_dpath, fname):
+    df = pd.read_csv(os.path.join(data_dpath, fname), index_col=0, header=None).T
+    #df = df.reset_index()
+    # remove rows and columns that are all nan
+    df = df.dropna(how='all')
+    df = df.loc[:, df.columns.notnull()] 
+    df['Sample'] = os.path.splitext(fname)[0]
+    df.VALUE = pd.to_numeric(df.VALUE)
+    df.day = pd.to_numeric(df.day)
+    df['MODE'] = df.EXP.str.split('_', expand=True)[1]
+    return df
+
+def _get_fcm_fl_day(df, row):
+    x = row['day']
+    e = row['EXP']
+    
+    possible_days = df.loc[(df.METHOD == 'FL') & (df.EXP == e) & (df.day >= x) & (df.day < x+1), 'day' ].unique()
+    if len(possible_days) == 0:
+        possible_days = df.loc[(df.METHOD == 'FL') & (df.EXP == e) & (df.day >x-1) & (df.day < x+1), 'day' ].unique()
+    if len(possible_days) == 0:
+        flday =  None
+        flval = None
+    else: 
+        flday =  possible_days[0]
+        flval = df.loc[(df.METHOD == 'FL') & (df.EXP == e) & (df.day == flday), 'VALUE' ].unique()[0]
+    return pd.Series({'fl_day': flday, 'FL': flval})
+
+def get_fcm_df():
+    fcmdflist=list()
+    for i in os.listdir('fcmfiles'):
+        if i.endswith('.csv'):
+            d = pd.read_csv(os.path.join('fcmfiles', i))
+            n = os.path.splitext(i)[0]
+            _, experiment, day = n.split('_')
+            d['experiment'] = experiment
+            d['day'] = day.replace('Days','')
+            fcmdflist.append(d)
+    fcmdf = pd.concat(fcmdflist)
+    fcmdf.loc[fcmdf.PRO == 'C9B', 'PRO'] = 'MIT0604'
+    fcmdf['day'] = pd.to_numeric(fcmdf['day'])
+
+def gen_FL2cells_model():
+    data_dpath = r'fcm_and_fl'
+    csv_fnames = [ n for n in os.listdir(data_dpath) if n.endswith('.csv')]
+    temp_dfs = [_load_fcm_fl_csv(data_dpath, fname) for fname in csv_fnames]
+    prevfcm_df = pd.concat(temp_dfs)
+    prevfcm_df.loc[prevfcm_df['MODE']== 'PRO99','MODE'] = 'pro99'
+    prevfcm_df.loc[prevfcm_df.Sample == '9313 LD_FL1', 'PRO'] = 'MIT9313'
+    prevfcm_df = prevfcm_df.fillna({'ALT': 'N/A'}, )
+    fl_df = prevfcm_df.loc[prevfcm_df.METHOD.isin(['FL']),['EXP','day', 'VALUE']].sort_values(by='day')
+    fcm_df = prevfcm_df.loc[prevfcm_df.METHOD.isin(['FCM'])].sort_values(by='day')
+    compdf = pd.merge_asof(fcm_df, fl_df, on='day', by='EXP', direction='nearest', suffixes=('','_FL'), tolerance=1 )
+
+    compdf.rename(columns={'VALUE': 'FCM', 'VALUE_FL': 'FL'}, inplace=True)
+    compdf.dropna(axis='rows', inplace=True)
+    X = compdf['FL']
+    y = compdf['FCM']
+    res = sm.OLS(y, sm.add_constant(X)).fit()
+    print(res.summary())
+    return res, compdf
+    
+def compute_FL2cells(FL_series, model):
+    dt = model.get_prediction(sm.add_constant(FL_series)).summary_frame(alpha = 0.05)
+    return dt['mean']
+
+
 # if __name__ == '__main__':
 #
 #     df = pd.read_pickle('CCPA.pkl.gz')
@@ -1374,4 +1456,7 @@ def model_scurve(z, b1, b2, b3, _):
 # resample_period_list = [None, '1d', '3d', '5d']
 # y_col_list = ['PRO', 'ALT', 'PRO_ALT']
 # cumsummode_list = [False, True]
+
+
+
 
