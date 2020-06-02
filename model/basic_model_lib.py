@@ -39,7 +39,7 @@ class ModelParam:
 
 
 class ModelVariable:
-    def __init__(self, name, symbolname, initval, organism = None):
+    def __init__(self, name, symbolname, initval, organism = None, nutrient=None):
         self.name = name
         self.initval = initval
         self.symbol = symbols(symbolname)
@@ -49,6 +49,7 @@ class ModelVariable:
         self.formula = None
         self.lambdafun = None
         self.organism = organism
+        self.nutrient = nutrient
 
     def run_lambdify(self, param_values, variables_list, intermediate_variables, intermediate_evaluation_order):
         s = self.formula
@@ -58,6 +59,7 @@ class ModelVariable:
             s = s.subs({v.symbol: v.formula})
             #print('after:', s)
 
+        #print(s, param_values)
         subs_expr = s.subs(param_values)
         subs_expr2 = subs_expr.subs(variables_list)
         #print('before:', self.formula)
@@ -83,7 +85,9 @@ class ModelProALT:
 
     def __init__(self):
         self._disable_organism = None
+        self._disable_nutrient = None
         self.reference_days = list()
+        self.reference_iterations = set()
         self.init_params()
         self.init_intermediate_variables()
         self.init_variables()
@@ -111,8 +115,8 @@ class ModelProALT:
             # gamma=fraction of heterotroph mort/resp to inorganic form
             ('gamma_n_p', 'gamma_N^P', 0.04),
             ('gamma_c_p', 'gamma_C^P', 0.04),
-            ('gamma_n_a', 'gamma_N^A', 0.04),
-            ('gamma_c_a', 'gamma_C^A', 0.04),
+            ('gamma_n_a', 'gamma_N^A', 0.5),
+            ('gamma_c_a', 'gamma_C^A', 0.5),
 
             # gamma refractory =fraction of heterotroph mort/resp to refractory inorganic form
             ('gamma_refractory_n_p', 'gamma_refractory_N^P', 0.1),
@@ -198,10 +202,10 @@ class ModelProALT:
         variables = [
 
             # biomass (umol N l-1 ),
-            ('b_n_p', 'B_N^P', self.get_param_val('q_n_min_p')*1e9, 'PRO'),
-            ('b_c_p', 'B_C^P', self.get_param_val('q_c_min_p')*1e9, 'PRO'),
-            ('b_n_a', 'B_N^A', self.get_param_val('q_n_min_a')*1e10, 'ALT'),
-            ('b_c_a', 'B_C^A', self.get_param_val('q_c_min_a')*1e10, 'ALT'),
+            ('b_n_p', 'B_N^P', self.get_param_val('q_n_min_p')*1e9, 'PRO', 'n'),
+            ('b_c_p', 'B_C^P', self.get_param_val('q_c_min_p')*1e9, 'PRO', 'c'),
+            ('b_n_a', 'B_N^A', self.get_param_val('q_n_min_a')*1e10, 'ALT', 'n'),
+            ('b_c_a', 'B_C^A', self.get_param_val('q_c_min_a')*1e10, 'ALT', 'c'),
 
             # ('b_n_p', 'B_N^P', 0.5148),
             # ('b_c_p', 'B_C^P', 0.5148 * redfield_C_to_N),
@@ -213,14 +217,12 @@ class ModelProALT:
             ('x_a', 'X^A', 1e10, 'ALT'),
 
             # Nutrients (umol N l-1 ),
-            ('n', 'N', 100),
-            ('c', 'C', 2000),
-            ('on', 'ON', 20),
-            ('oc', 'OC', 60),
-            ('on', 'ON', 20),
-            ('oc', 'OC', 60),
-            ('on_refractory', 'ON_refractory', 0),
-            ('oc_refractory', 'OC_refractory', 0),
+            ('n', 'N', 100, None, 'n'),
+            ('c', 'C', 2000, None, 'c'),
+            ('on', 'ON', 20, None, 'n'),
+            ('oc', 'OC', 60, None, 'c'),
+            ('on_refractory', 'ON_refractory', 0, None, 'n'),
+            ('oc_refractory', 'OC_refractory', 0, None, 'c'),
 
         ]
 
@@ -301,6 +303,7 @@ class ModelProALT:
                 f'mu_{i}',
                 (1 - Max((s(f'q_n_min_{i}') / s(f'q_n_{i}')), (s(f'q_c_min_{i}') / s(f'q_c_{i}')))) * s(f'mu_inf_{i}')
             )
+            
             self.add_formula(
                 f'x_{i}',
                 s(f'x_{i}') + (s(f'x_{i}') * s(f'mu_{i}') - s(f'x_{i}') * s(f'mortality_{i}')) * s(f'delta_t')
@@ -324,7 +327,8 @@ class ModelProALT:
             s('n') + (
                     - s(f'delta_b_n_p_uptake')
                     - s(f'delta_b_in_a_uptake')
-                    + s(f'delta_b_n_a_excretion')
+                    + s(f'gamma_n_p') * s(f'delta_b_n_p_excretion')
+                    + s(f'gamma_n_a') * s(f'delta_b_n_a_excretion')
                     + s(f'gamma_n_p') * s(f'delta_b_n_p_mortality')
                     + s(f'gamma_n_a') * s(f'delta_b_n_a_mortality')
             ) * s(f'delta_t')
@@ -334,7 +338,8 @@ class ModelProALT:
             'on',
             s('on') + (
                     - s(f'delta_b_n_a_uptake')
-                    + s(f'delta_b_n_p_excretion') * (1 - s(f'gamma_refractory_n_p')) 
+                    + (1 - s(f'gamma_n_p')) * s(f'delta_b_n_p_excretion') * (1 - s(f'gamma_refractory_n_p')) 
+                    + (1 - s(f'gamma_n_a')) * s(f'delta_b_n_a_excretion') * (1 - s(f'gamma_refractory_n_a')) 
                     + (1 - s(f'gamma_n_p')) * s(f'delta_b_n_p_mortality') * (1 - s(f'gamma_refractory_n_p'))
                     + (1 - s(f'gamma_n_a')) * s(f'delta_b_n_a_mortality') * (1 - s(f'gamma_refractory_n_a'))
             ) * s(f'delta_t')
@@ -343,7 +348,8 @@ class ModelProALT:
         self.add_formula(
             'on_refractory',
             s('on_refractory') + (
-                    + s(f'delta_b_n_p_excretion') * (s(f'gamma_refractory_n_p')) 
+                    + (1 - s(f'gamma_n_p')) * s(f'delta_b_n_p_excretion') * (s(f'gamma_refractory_n_p')) 
+                    + (1 - s(f'gamma_n_a')) * s(f'delta_b_n_a_excretion') * (s(f'gamma_refractory_n_a')) 
                     + (1 - s(f'gamma_n_p')) * s(f'delta_b_n_p_mortality') * (s(f'gamma_refractory_n_p'))
                     + (1 - s(f'gamma_n_a')) * s(f'delta_b_n_a_mortality') * (s(f'gamma_refractory_n_a'))
             ) * s(f'delta_t')
@@ -369,7 +375,8 @@ class ModelProALT:
             'c',
             s('c') + (
                     - s(f'delta_b_c_p_uptake')
-                    + s(f'delta_b_c_a_excretion')
+                    + s(f'gamma_c_p') * s(f'delta_b_c_p_excretion')
+                    + s(f'gamma_c_a') * s(f'delta_b_c_a_excretion')
                     + s(f'gamma_c_p') * s(f'delta_b_c_p_mortality')
                     + s(f'gamma_c_a') * s(f'delta_b_c_a_mortality')
                     + s(f'delta_b_c_p_respiration')
@@ -381,7 +388,8 @@ class ModelProALT:
             'oc',
             s('oc') + (
                     - s(f'delta_b_c_a_uptake')
-                    + s(f'delta_b_c_p_excretion') * (1 - s(f'gamma_refractory_c_p'))
+                    + (1 - s(f'gamma_c_p')) * s(f'delta_b_c_p_excretion') * (1 - s(f'gamma_refractory_c_p'))
+                    + (1 - s(f'gamma_c_a')) * s(f'delta_b_c_a_excretion') * (1 - s(f'gamma_refractory_c_a'))
                     + (1 - s(f'gamma_c_p')) * s(f'delta_b_c_p_mortality') * (1 - s(f'gamma_refractory_c_p'))
                     + (1 - s(f'gamma_c_a')) * s(f'delta_b_c_a_mortality') * (1 - s(f'gamma_refractory_c_a'))
             ) * s(f'delta_t')
@@ -390,7 +398,8 @@ class ModelProALT:
         self.add_formula(
             'oc_refractory',
             s('oc_refractory') + (
-                    + s(f'delta_b_c_p_excretion') * (s(f'gamma_refractory_c_p'))
+                    + (1 - s(f'gamma_c_p')) * s(f'delta_b_c_p_excretion') * (s(f'gamma_refractory_c_p'))
+                    + (1 - s(f'gamma_c_a')) * s(f'delta_b_c_a_excretion') * (s(f'gamma_refractory_c_a'))
                     + (1 - s(f'gamma_c_p')) * s(f'delta_b_c_p_mortality') * (s(f'gamma_refractory_c_p'))
                     + (1 - s(f'gamma_c_a')) * s(f'delta_b_c_a_mortality') * (s(f'gamma_refractory_c_a'))
             ) * s(f'delta_t')
@@ -402,15 +411,19 @@ class ModelProALT:
         else:
             self.variables_list = list(self.variables.values())
             #list(self.intermediate_variables.values()) + list(self.variables.values())
+        if self._disable_nutrient is not None:
+            self.variables_list = [v for v in self.variables_list if v.nutrient != self._disable_nutrient]
 
     def lambadify(self):
         param_values = {i.symbol: i.value for i in self.parameters.values()}
         if self._disable_organism is not None:
             param_values.update({i.symbol : i.value for i in self.variables.values() if i.organism == self._disable_organism})
+        if self._disable_nutrient is not None:
+            param_values.update({i.symbol : i.value for i in self.variables.values() if i.nutrient == self._disable_nutrient})
         var_symbols = [(v.symbol, v.lambda_symbol) for v in self.variables_list]
         #for i in self.intermediate_variables.values():
         #    i.run_lambdify(param_values, var_symbols)
-
+        #print (param_values, var_symbols, self.intermediate_variables, self.intermediate_evaluation_order)
         for i in self.variables_list:
             i.run_lambdify(param_values, var_symbols, self.intermediate_variables, self.intermediate_evaluation_order)
 
@@ -443,6 +456,19 @@ class ModelProALT:
     def disable_organism(self, organism):
         assert organism in ['PRO', 'ALT']
         self._disable_organism  =  organism
+
+    def disable_nutrient(self, nutrient):
+        assert nutrient in ['n', 'c']
+        self._disable_nutrient  =  nutrient
+        # override mu formula to take into account only one nutrient
+        s = lambda x : self.symbol(x)
+        n = 'n' if self._disable_nutrient == 'c' else 'c'
+        for i in ['a', 'p']:
+            self.add_formula(
+                f'mu_{i}',
+                (1 - (s(f'q_{n}_min_{i}') / s(f'q_{n}_{i}'))) * s(f'mu_inf_{i}')
+            )
+
 
     def simulate(self, num_iterations, collect_every=3600*2):
         print('.', end='')
@@ -638,20 +664,37 @@ def display_simulation_results(res_df, model, model_name, reference_FL_df=None, 
         d.display_quota('a', 'n')
         d.display_quota('a', 'c')
     
+from scipy.optimize import differential_evolution
 
+def genetic_optimization(param_names, ref_df, disable_organism=None, disable_nutrient=None):
+
+    opt_func = lambda x : model_optimize_PRO(x, ref_df, param_names, disable_organism=disable_organism, disable_nutrient=disable_nutrient)
+    def compute_bounds(param_name):
+        m = ModelProALT()
+        i = m.get_param_val(p)
+        if i < 0.1:
+            return (i/10, i*10)
+            #return (0, 0.2)
+        else:
+            return (i/10, i*2)
+        
     
+    bounds = [compute_bounds(i) for i in param_names]
+    result = differential_evolution(opt_func, bounds, disp=True)
+    return result
 
 
 
 
-def model_optimize_PRO(param_values, ref_df, param_names):
+def model_optimize_PRO(param_values, ref_df, param_names, disable_organism='a', disable_nutrient=None):
     m = ModelProALT()
-    m.disable_organism('ALT')
-    m.override_initial_values({
-        'b_n_a': 0,
-        'b_c_a': 0,
-        'x_a': 0,
-    })
+    m.disable_organism(disable_organism)
+    m.disable_nutrient(disable_nutrient)
+    if disable_organism == 'a':
+        m.override_initial_values({
+            'x_a': 0,
+        })
+        
     m.override_param_values({i : k for i, k in zip(param_names, param_values)})
     reference_days = ref_df['day'].unique().tolist()
     max_day = int(ref_df['day'].max()) + 1
@@ -664,7 +707,9 @@ def model_optimize_PRO(param_values, ref_df, param_names):
         # bad solution
         print('bad')
         return 100000
-    return metrics.mean_squared_log_error(t['VALUE'], t['x_p'])
+    res = metrics.mean_squared_log_error(t['VALUE'], t['x_p'])
+    print(res)
+    return res
 
 
 if __name__ == '__main__':
