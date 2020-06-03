@@ -12,6 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn import metrics
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 # param - name, symbol, value
@@ -647,28 +648,78 @@ class DisplayModel:
     
     
 
-def display_simulation_results(res_df, model, model_name, reference_FL_df=None, reference_FCM_df=None, pro_only=False, max_day=None):
+def display_simulation_results(res_df, model, model_name, reference_FL_df=None, reference_FCM_df=None,
+                               pro_only=False, n_only=False, max_day=None):
     d = DisplayModel(res_df, model, model_name, reference_FL_df, reference_FCM_df, pro_only, max_day)
+
     # cells
     d.display_cells()
     d.display_cells(logscale=True)
 
     #biomass
     d.display_biomass('n')
-    d.display_biomass('c')
+    if not n_only:
+        d.display_biomass('c')
 
     # quotas
     d.display_quota('p', 'n')
-    d.display_quota('p', 'c')
+    if not n_only:
+        d.display_quota('p', 'c')
     if not pro_only:
         d.display_quota('a', 'n')
-        d.display_quota('a', 'c')
-    
+        if not n_only:
+            d.display_quota('a', 'c')
+
+def display_simulation_results_to_pdf(res_df, model, model_name, pdf_fpath, reference_FL_df=None, reference_FCM_df=None,
+                               pro_only=False, n_only=False, max_day=None, ):
+    d = DisplayModel(res_df, model, model_name, reference_FL_df, reference_FCM_df, pro_only, max_day)
+    with PdfPages(pdf_fpath) as pdf:
+
+        # cells
+        d.display_cells()
+        plt.savefig()
+        plt.close()
+        d.display_cells(logscale=True)
+        plt.savefig()
+        plt.close()
+
+        #biomass
+        d.display_biomass('n')
+        plt.savefig()
+        plt.close()
+        if not n_only:
+            d.display_biomass('c')
+            plt.savefig()
+            plt.close()
+
+        # quotas
+        d.display_quota('p', 'n')
+        plt.savefig()
+        plt.close()
+        if not n_only:
+            d.display_quota('p', 'c')
+            plt.savefig()
+            plt.close()
+        if not pro_only:
+            d.display_quota('a', 'n')
+            plt.savefig()
+            plt.close()
+            if not n_only:
+                d.display_quota('a', 'c')
+                plt.savefig()
+                plt.close()
+
+
 from scipy.optimize import differential_evolution
+
 
 def genetic_optimization(param_names, ref_df, disable_organism=None, disable_nutrient=None):
 
-    opt_func = lambda x : model_optimize_PRO(x, ref_df, param_names, disable_organism=disable_organism, disable_nutrient=disable_nutrient)
+    reference_days = ref_df['day'].unique().tolist()
+    max_day = int(ref_df['day'].max()) + 1
+    num_iterations = max_day * 3600 * 24
+    opt_func = lambda x : model_optimize_PRO(x, ref_df, param_names, reference_days, num_iterations,
+                                             disable_organism=disable_organism, disable_nutrient=disable_nutrient)
     def compute_bounds(param_name):
         m = ModelProALT()
         i = m.get_param_val(p)
@@ -684,22 +735,11 @@ def genetic_optimization(param_names, ref_df, disable_organism=None, disable_nut
     return result
 
 
-
-
-def model_optimize_PRO(param_values, ref_df, param_names, disable_organism='a', disable_nutrient=None):
-    m = ModelProALT()
-    m.disable_organism(disable_organism)
-    m.disable_nutrient(disable_nutrient)
-    if disable_organism == 'a':
-        m.override_initial_values({
-            'x_a': 0,
-        })
-        
-    m.override_param_values({i : k for i, k in zip(param_names, param_values)})
-    reference_days = ref_df['day'].unique().tolist()
-    max_day = int(ref_df['day'].max()) + 1
-    m.set_referece_times(reference_days)
-    _, ref_res = m.simulate(num_iterations=max_day*3600*24, collect_every=None)
+def model_optimize_PRO(param_values, ref_df, param_names, reference_days, num_iterations, disable_organism='a',
+                       disable_nutrient=None):
+    collect_every = False
+    m, res, ref_res = run_model(param_values, param_names, reference_days, num_iterations, collect_every,
+                                disable_organism, disable_nutrient)
     ref_res_df = pd.DataFrame(ref_res)
     t = pd.merge(ref_res_df[['day', 'x_p']], ref_df[['day', 'VALUE']], on='day')
     #print(t)
@@ -712,19 +752,83 @@ def model_optimize_PRO(param_values, ref_df, param_names, disable_organism='a', 
     return res
 
 
-if __name__ == '__main__':
+def run_model(param_values, param_names, reference_days, num_iterations, collect_every,
+              disable_organism, disable_nutrient):
     m = ModelProALT()
-    m.disable_organism('ALT')
-    m.override_initial_values({
-        'b_n_a': 0,
-        'b_c_a': 0,
-        'x_a': 0,
-    })
-    m.set_referece_times([0,0.5,0.6])
-    #m.print_formulas()
-    #m.lambadify()
-    #m.evaluate()
-    res, ref_res = m.simulate(num_iterations=1*3600*24)
+    m.disable_organism(disable_organism)
+    m.disable_nutrient(disable_nutrient)
+    if disable_organism == 'a':
+        m.override_initial_values({
+            'x_a': 0,
+        })
+
+    m.override_param_values({i: k for i, k in zip(param_names, param_values)})
+    m.set_referece_times(reference_days)
+    res, ref_res = m.simulate(num_iterations=num_iterations, collect_every=collect_every)
+    return m, res, ref_res
+
+
+if __name__ == '__main__':
+    import argparse
+    import json
     import pprint
-    pprint.pprint(res)
-    pprint.pprint(ref_res)
+
+    parser = argparse.ArgumentParser(description='Run models.')
+    parser.add_argument("--optimize", help="run optimization (default: run model",
+                        action="store_true")
+    parser.add_argument('--params_opt', nargs='*', help='optimization params')
+    parser.add_argument('--ref_csv', help='reference data (FCM cells/ml), csv file', required=True)
+    parser.add_argument("--disable_c", help="disable C", action="store_true")
+    parser.add_argument("--disable_alt", help="disable C", action="store_true")
+    #parser.add_argument("--outdir", help="output dir", default='.')
+    parser.add_argument("--outfile", help="output filename", required=True)
+
+    args = parser.parse_args()
+    dpath = os.path.dirname(args.outfile)
+    if dpath != '':
+        os.makedirs(dpath, exist_ok=True)
+    ref_df = pd.read_csv(args.ref_csv)
+    disable_organism = 'a' if args.disable_alt else None
+    disable_nutrient = 'c' if args.disable_c else None
+
+    if args.optimize:
+        assert(len(args.params_opt))
+        result = genetic_optimization(args.params_opt, ref_df,
+                                      disable_organism=disable_organism, disable_nutrient=disable_nutrient)
+        pprint.pprint(result)
+        with open(args.outfile, 'w') as fp:
+            json.dump(result, fp)
+
+    else:
+        # simulate (no optimization)
+        reference_days = ref_df['day'].unique().tolist()
+        max_day = int(ref_df['day'].max()) + 1
+        num_iterations = max_day * 3600 * 24
+        collect_every = 3600*4
+        m, res, ref_res = run_model(args.param_values, args.param_names, reference_days, num_iterations, collect_every,
+                                    disable_organism, disable_nutrient)
+        res_df = pd.DataFrame(res)
+        pdf_fpath = f'{os.path.splitext(args.outfile)[0]}.pdf'
+        model_name = os.path.splitext(os.path.basename(args.outfile))[-1]
+        display_simulation_results_to_pdf(res_df, m, model_name, pdf_fpath,
+                                          #reference_FL_df=ref_fl_df,
+                                          reference_FCM_df=ref_df,
+                                          pro_only=args.disable_alt,
+                                          n_only=args.disable_c)
+        res_df.to_csv(args.outfile)
+
+# m = ModelProALT()
+    # m.disable_organism('ALT')
+    # m.override_initial_values({
+    #     'b_n_a': 0,
+    #     'b_c_a': 0,
+    #     'x_a': 0,
+    # })
+    # m.set_referece_times([0,0.5,0.6])
+    # #m.print_formulas()
+    # #m.lambadify()
+    # #m.evaluate()
+    # res, ref_res = m.simulate(num_iterations=1*3600*24)
+    # import pprint
+    # pprint.pprint(res)
+    # pprint.pprint(ref_res)
