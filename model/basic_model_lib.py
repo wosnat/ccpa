@@ -455,11 +455,11 @@ class ModelProALT:
         return res
 
     def disable_organism(self, organism):
-        assert organism in ['PRO', 'ALT']
+        assert organism in ['PRO', 'ALT', None]
         self._disable_organism  =  organism
 
     def disable_nutrient(self, nutrient):
-        assert nutrient in ['n', 'c']
+        assert nutrient in ['n', 'c', None]
         self._disable_nutrient  =  nutrient
         # override mu formula to take into account only one nutrient
         s = lambda x : self.symbol(x)
@@ -553,8 +553,10 @@ class DisplayModel:
     ALT_FCM_COLOR = 'PaleGoldenrod'
     N_COLOR = 'royalblue'
     ON_COLOR = 'PowderBlue'
+    REF_ON_COLOR = 'PowderBlue'
     C_COLOR = 'FireBrick'
     OC_COLOR = 'LightCoral'
+    REF_OC_COLOR = 'PowderBlue'
     QUOTA_COLOR='red'
 
     mcolors = {
@@ -568,21 +570,24 @@ class DisplayModel:
         'c': C_COLOR, 
         'on': ON_COLOR, 
         'oc':OC_COLOR,
-        'on_refractory': ON_COLOR, 
-        'oc_refractory':OC_COLOR,
+        'on_refractory': REF_ON_COLOR,
+        'oc_refractory': REF_OC_COLOR,
         'q_n_p' :PRO_COLOR, 
         'q_c_p': PRO_COLOR, 
         'q_n_a' :ALT_COLOR, 
         'q_c_a': ALT_COLOR, 
     }
 
-    def __init__(self, res_df, model, model_name, reference_FL_df, reference_FCM_df, pro_only, max_day):
+    def __init__(self, res_df, model, model_name, reference_FL_df, reference_FCM_df, pro_only, max_day,
+                 ref_pro_col, ref_alt_col):
         self.res_df = self.apply_max_day(res_df, max_day)
         self.model=model
         self.model_name = model_name
         self.reference_FL_df = self.apply_max_day(reference_FL_df, max_day)
         self.reference_FCM_df = self.apply_max_day(reference_FCM_df, max_day)
         self.pro_only = pro_only
+        self.ref_pro_col = ref_pro_col
+        self.ref_alt_col = ref_alt_col
         
     def apply_max_day(self, df, max_day):
         if max_day is None:
@@ -604,7 +609,6 @@ class DisplayModel:
         plt.ylabel(f'umol {n.upper()}/cell')
         plt.title(f'{self.model_name} - Quota q_{n}_{i}')
         
-        plt.show()
 
     def display_biomass(self, nutrient):
         n = nutrient
@@ -619,23 +623,22 @@ class DisplayModel:
         plt.legend(bbox_to_anchor=(1,1))
         plt.ylabel(f'umol {n.upper()}/L')
         plt.title(f'{self.model_name} - {n.upper()} Concentration')
-        plt.show()
-        
+
     def display_cells(self, logscale=False):
         xlst = ['x_p', 'x_a',]
         if self.pro_only:
             xlst = ['x_p']
-        
+        ax = None
         for i in xlst:
-            sns.lineplot(data=self.res_df, x='day', y=i, label=i, lw=5, color=self.mcolors[i])
-
-        sns.scatterplot(x=self.reference_FL_df.day, y=self.reference_FL_df.cells*1000, 
-                        label='PRO, ref FL', color=self.PRO_FL_COLOR, s=50)
-        sns.scatterplot(x=self.reference_FCM_df.day, y=self.reference_FCM_df['PRO.1']*1000, 
-                        label='PRO, ref FCM', color=self.PRO_FCM_COLOR, s=100)
+            ax = sns.lineplot(data=self.res_df, x='day', y=i, label=i, lw=5, color=self.mcolors[i], ax=ax)
+        if self.reference_FL_df is not None:
+            sns.scatterplot(x=self.reference_FL_df.day, y=self.reference_FL_df.cells*1000,
+                            label='PRO, ref FL', color=self.PRO_FL_COLOR, s=50, ax=ax)
+        sns.scatterplot(x=self.reference_FCM_df.day, y=self.reference_FCM_df[self.ref_pro_col]*1000,
+                        label='PRO, ref FCM', color=self.PRO_FCM_COLOR, s=100, ax=ax)
         if not self.pro_only:
-            sns.scatterplot(x=self.reference_FCM_df.day, y=self.reference_FCM_df['ALT.1']*1000, 
-                            label='ALT, ref FCM', color=self.ALT_FCM_COLOR, s=100)
+            sns.scatterplot(x=self.reference_FCM_df.day, y=self.reference_FCM_df[self.ref_alt_col]*1000,
+                            label='ALT, ref FCM', color=self.ALT_FCM_COLOR, s=100, ax=ax)
             
         plt.legend(bbox_to_anchor=(1,1))
         plt.ylabel(f'cells/L')
@@ -643,86 +646,101 @@ class DisplayModel:
         if logscale:
             plt.yscale('log')
         plt.title(f'{self.model_name} - X (cells/L)')
-        plt.show()
+        return ax
 
     
     
 
 def display_simulation_results(res_df, model, model_name, reference_FL_df=None, reference_FCM_df=None,
-                               pro_only=False, n_only=False, max_day=None):
-    d = DisplayModel(res_df, model, model_name, reference_FL_df, reference_FCM_df, pro_only, max_day)
+                               pro_only=False, n_only=False, max_day=None,
+                               ref_pro_col = 'PRO', ref_alt_col = 'ALT', ):
+    d = DisplayModel(res_df, model, model_name, reference_FL_df, reference_FCM_df, pro_only, max_day,
+                     ref_pro_col, ref_alt_col)
 
+    sns.set(context='paper', style='white')
     # cells
     d.display_cells()
+    plt.show()
     d.display_cells(logscale=True)
+    plt.show()
 
     #biomass
     d.display_biomass('n')
+    plt.show()
     if not n_only:
         d.display_biomass('c')
+        plt.show()
 
     # quotas
     d.display_quota('p', 'n')
+    plt.show()
     if not n_only:
         d.display_quota('p', 'c')
+        plt.show()
     if not pro_only:
         d.display_quota('a', 'n')
+        plt.show()
         if not n_only:
             d.display_quota('a', 'c')
+            plt.show()
 
 def display_simulation_results_to_pdf(res_df, model, model_name, pdf_fpath, reference_FL_df=None, reference_FCM_df=None,
-                               pro_only=False, n_only=False, max_day=None, ):
-    d = DisplayModel(res_df, model, model_name, reference_FL_df, reference_FCM_df, pro_only, max_day)
+                               pro_only=False, n_only=False, max_day=None,
+                                      ref_pro_col='PRO', ref_alt_col='ALT', ):
+    d = DisplayModel(res_df, model, model_name, reference_FL_df, reference_FCM_df, pro_only, max_day,
+                     ref_pro_col, ref_alt_col)
     with PdfPages(pdf_fpath) as pdf:
 
         # cells
         d.display_cells()
-        plt.savefig()
+        pdf.savefig()
         plt.close()
         d.display_cells(logscale=True)
-        plt.savefig()
+        pdf.savefig()
         plt.close()
 
         #biomass
         d.display_biomass('n')
-        plt.savefig()
+        pdf.savefig()
         plt.close()
         if not n_only:
             d.display_biomass('c')
-            plt.savefig()
+            pdf.savefig()
             plt.close()
 
         # quotas
         d.display_quota('p', 'n')
-        plt.savefig()
+        pdf.savefig()
         plt.close()
         if not n_only:
             d.display_quota('p', 'c')
-            plt.savefig()
+            pdf.savefig()
             plt.close()
         if not pro_only:
             d.display_quota('a', 'n')
-            plt.savefig()
+            pdf.savefig()
             plt.close()
             if not n_only:
                 d.display_quota('a', 'c')
-                plt.savefig()
+                pdf.savefig()
                 plt.close()
 
 
 from scipy.optimize import differential_evolution
 
 
-def genetic_optimization(param_names, ref_df, disable_organism=None, disable_nutrient=None):
+def genetic_optimization(param_names, ref_df, disable_organism, disable_nutrient, ref_pro_col, ref_alt_col):
 
     reference_days = ref_df['day'].unique().tolist()
     max_day = int(ref_df['day'].max()) + 1
     num_iterations = max_day * 3600 * 24
-    opt_func = lambda x : model_optimize_PRO(x, ref_df, param_names, reference_days, num_iterations,
-                                             disable_organism=disable_organism, disable_nutrient=disable_nutrient)
+    opt_func = lambda x : model_optimize(x, ref_df, param_names, reference_days, num_iterations,
+                                             disable_organism=disable_organism, disable_nutrient=disable_nutrient,
+                                             ref_pro_col=ref_pro_col, ref_alt_col=ref_alt_col, )
+
     def compute_bounds(param_name):
         m = ModelProALT()
-        i = m.get_param_val(p)
+        i = m.get_param_val(param_name)
         if i < 0.1:
             return (i/10, i*10)
             #return (0, 0.2)
@@ -735,37 +753,64 @@ def genetic_optimization(param_names, ref_df, disable_organism=None, disable_nut
     return result
 
 
-def model_optimize_PRO(param_values, ref_df, param_names, reference_days, num_iterations, disable_organism='a',
-                       disable_nutrient=None):
+def model_optimize(param_values, ref_df, param_names, reference_days, num_iterations, disable_organism,
+                       disable_nutrient, ref_pro_col, ref_alt_col):
     collect_every = False
+    init_x_p, init_x_a = compute_x_init(ref_df, ref_pro_col, ref_alt_col)
+            
     m, res, ref_res = run_model(param_values, param_names, reference_days, num_iterations, collect_every,
-                                disable_organism, disable_nutrient)
+                                disable_organism, disable_nutrient, init_x_p, init_x_a)
     ref_res_df = pd.DataFrame(ref_res)
-    t = pd.merge(ref_res_df[['day', 'x_p']], ref_df[['day', 'VALUE']], on='day')
+    ref_col_list = ['day']
+    if disable_organism != 'ALT':
+        ref_col_list.append(ref_alt_col)
+    if disable_organism != 'PRO':
+        ref_col_list.append(ref_pro_col)
+        
+    t = pd.merge(ref_res_df[['day', 'x_p', 'x_a']], ref_df[ref_col_list], on='day')
     #print(t)
     if (~np.isfinite(t)).any().any() or t.isna().any().any() or (t.shape[0] == 0):
         # bad solution
         print('bad')
         return 100000
-    res = metrics.mean_squared_log_error(t['VALUE'], t['x_p'])
+    res = 0
+    if disable_organism != 'PRO':
+        res += metrics.mean_squared_log_error(t[ref_pro_col] * 1000, t['x_p'] )
+    if disable_organism != 'ALT':
+        res += metrics.mean_squared_log_error(t[ref_alt_col] * 1000, t['x_a'])
+    #res = metrics.mean_squared_log_error(t['VALUE'], t['x_p'])
     print(res)
     return res
 
 
 def run_model(param_values, param_names, reference_days, num_iterations, collect_every,
-              disable_organism, disable_nutrient):
+              disable_organism, disable_nutrient, init_x_p, init_x_a):
     m = ModelProALT()
     m.disable_organism(disable_organism)
     m.disable_nutrient(disable_nutrient)
-    if disable_organism == 'a':
-        m.override_initial_values({
-            'x_a': 0,
-        })
+    m.override_initial_values({
+        'x_a': init_x_a,
+        'x_p': init_x_p,
+    })
 
     m.override_param_values({i: k for i, k in zip(param_names, param_values)})
     m.set_referece_times(reference_days)
     res, ref_res = m.simulate(num_iterations=num_iterations, collect_every=collect_every)
     return m, res, ref_res
+
+def compute_x_init(ref_df, ref_pro_col, ref_alt_col):
+    init_x_a = 0
+    init_x_p = 0
+    init_row = ref_df.loc[ref_df["day"] == 0]
+    if disable_organism != 'ALT':
+        init_x_a = 1e7
+        if init_row.shape[0] > 0:
+            init_x_a = init_row[ref_alt_col].min()
+    if disable_organism != 'PRO':
+        init_x_p = 1e6
+        if init_row.shape[0] > 0:
+            init_x_p = init_row[ref_pro_col].min()
+    return init_x_p, init_x_a
 
 
 if __name__ == '__main__':
@@ -776,10 +821,16 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run models.')
     parser.add_argument("--optimize", help="run optimization (default: run model",
                         action="store_true")
-    parser.add_argument('--params_opt', nargs='*', help='optimization params')
+    parser.add_argument('--params_opt', nargs='*', help='optimization params', default=[])
+    parser.add_argument('--param_values', nargs='*', help='override param values', default=[])
+    parser.add_argument('--param_names', nargs='*', help='override param names', default=[])
     parser.add_argument('--ref_csv', help='reference data (FCM cells/ml), csv file', required=True)
     parser.add_argument("--disable_c", help="disable C", action="store_true")
-    parser.add_argument("--disable_alt", help="disable C", action="store_true")
+    parser.add_argument("--disable_alt", help="disable ALT", action="store_true")
+    parser.add_argument("--disable_pro", help="disable PRO", action="store_true")
+    parser.add_argument('--ref_alt_col', help='name of ALT col', default='ALT')
+    parser.add_argument('--ref_pro_col', help='name of PRO col', default='PRO')
+    
     #parser.add_argument("--outdir", help="output dir", default='.')
     parser.add_argument("--outfile", help="output filename", required=True)
 
@@ -788,13 +839,16 @@ if __name__ == '__main__':
     if dpath != '':
         os.makedirs(dpath, exist_ok=True)
     ref_df = pd.read_csv(args.ref_csv)
-    disable_organism = 'a' if args.disable_alt else None
+    disable_organism = 'ALT' if args.disable_alt else None
+    if args.disable_pro:
+        disable_organism = 'PRO'
     disable_nutrient = 'c' if args.disable_c else None
 
     if args.optimize:
         assert(len(args.params_opt))
         result = genetic_optimization(args.params_opt, ref_df,
-                                      disable_organism=disable_organism, disable_nutrient=disable_nutrient)
+                                      disable_organism=disable_organism, disable_nutrient=disable_nutrient,
+                                      ref_pro_col=args.ref_pro_col, ref_alt_col=args.ref_alt_col, )
         pprint.pprint(result)
         with open(args.outfile, 'w') as fp:
             json.dump(result, fp)
@@ -804,17 +858,19 @@ if __name__ == '__main__':
         reference_days = ref_df['day'].unique().tolist()
         max_day = int(ref_df['day'].max()) + 1
         num_iterations = max_day * 3600 * 24
+        init_x_p, init_x_a = compute_x_init(ref_df, args.ref_pro_col, args.ref_alt_col)
         collect_every = 3600*4
         m, res, ref_res = run_model(args.param_values, args.param_names, reference_days, num_iterations, collect_every,
-                                    disable_organism, disable_nutrient)
+                                    disable_organism, disable_nutrient, init_x_p, init_x_a)
         res_df = pd.DataFrame(res)
         pdf_fpath = f'{os.path.splitext(args.outfile)[0]}.pdf'
-        model_name = os.path.splitext(os.path.basename(args.outfile))[-1]
+        model_name = os.path.splitext(os.path.basename(args.outfile))[0]
         display_simulation_results_to_pdf(res_df, m, model_name, pdf_fpath,
                                           #reference_FL_df=ref_fl_df,
                                           reference_FCM_df=ref_df,
                                           pro_only=args.disable_alt,
-                                          n_only=args.disable_c)
+                                          n_only=args.disable_c,
+                                          ref_pro_col=args.ref_pro_col, ref_alt_col=args.ref_alt_col, )
         res_df.to_csv(args.outfile)
 
 # m = ModelProALT()
