@@ -729,14 +729,21 @@ def display_simulation_results_to_pdf(res_df, model, model_name, pdf_fpath, refe
 from scipy.optimize import differential_evolution
 
 
-def genetic_optimization(param_names, ref_df, disable_organism, disable_nutrient, ref_pro_col, ref_alt_col):
+def genetic_optimization(param_names, ref_df, disable_organism, disable_nutrient, ref_pro_col, ref_alt_col, workers):
 
     reference_days = ref_df['day'].unique().tolist()
     max_day = int(ref_df['day'].max()) + 1
     num_iterations = max_day * 3600 * 24
-    opt_func = lambda x : model_optimize(x, ref_df, param_names, reference_days, num_iterations,
-                                             disable_organism=disable_organism, disable_nutrient=disable_nutrient,
-                                             ref_pro_col=ref_pro_col, ref_alt_col=ref_alt_col, )
+    # optimize_params = dict(ref_df=ref_df, param_names=param_names, reference_days=reference_days, num_iterations=num_iterations,
+    #                                          disable_organism=disable_organism, disable_nutrient=disable_nutrient,
+    #                                          ref_pro_col=ref_pro_col, ref_alt_col=ref_alt_col)
+    optimize_params = (ref_df, param_names, reference_days, num_iterations,
+                                             disable_organism, disable_nutrient,
+                                             ref_pro_col, ref_alt_col)
+
+    # opt_func = lambda x : model_optimize(x, ref_df, param_names, reference_days, num_iterations,
+    #                                          disable_organism=disable_organism, disable_nutrient=disable_nutrient,
+    #                                          ref_pro_col=ref_pro_col, ref_alt_col=ref_alt_col, )
 
     def compute_bounds(param_name):
         m = ModelProALT()
@@ -749,14 +756,15 @@ def genetic_optimization(param_names, ref_df, disable_organism, disable_nutrient
         
     
     bounds = [compute_bounds(i) for i in param_names]
-    result = differential_evolution(opt_func, bounds, disp=True)
+    result = differential_evolution(model_optimize, bounds, disp=True, workers=workers, #updating='deferred',
+                                    args=optimize_params)
     return result
 
 
 def model_optimize(param_values, ref_df, param_names, reference_days, num_iterations, disable_organism,
                        disable_nutrient, ref_pro_col, ref_alt_col):
-    collect_every = False
-    init_x_p, init_x_a = compute_x_init(ref_df, ref_pro_col, ref_alt_col)
+    collect_every = None
+    init_x_p, init_x_a = compute_x_init(ref_df, ref_pro_col, ref_alt_col, disable_organism)
             
     m, res, ref_res = run_model(param_values, param_names, reference_days, num_iterations, collect_every,
                                 disable_organism, disable_nutrient, init_x_p, init_x_a)
@@ -785,6 +793,7 @@ def model_optimize(param_values, ref_df, param_names, reference_days, num_iterat
 
 def run_model(param_values, param_names, reference_days, num_iterations, collect_every,
               disable_organism, disable_nutrient, init_x_p, init_x_a):
+
     m = ModelProALT()
     m.disable_organism(disable_organism)
     m.disable_nutrient(disable_nutrient)
@@ -798,18 +807,18 @@ def run_model(param_values, param_names, reference_days, num_iterations, collect
     res, ref_res = m.simulate(num_iterations=num_iterations, collect_every=collect_every)
     return m, res, ref_res
 
-def compute_x_init(ref_df, ref_pro_col, ref_alt_col):
+def compute_x_init(ref_df, ref_pro_col, ref_alt_col, disable_organism):
     init_x_a = 0
     init_x_p = 0
     init_row = ref_df.loc[ref_df["day"] == 0]
     if disable_organism != 'ALT':
-        init_x_a = 1e7
+        init_x_a = 1e10
         if init_row.shape[0] > 0:
-            init_x_a = init_row[ref_alt_col].min()
+            init_x_a = init_row[ref_alt_col].min() * 1000
     if disable_organism != 'PRO':
-        init_x_p = 1e6
+        init_x_p = 1e9
         if init_row.shape[0] > 0:
-            init_x_p = init_row[ref_pro_col].min()
+            init_x_p = init_row[ref_pro_col].min() * 1000
     return init_x_p, init_x_a
 
 
@@ -830,7 +839,9 @@ if __name__ == '__main__':
     parser.add_argument("--disable_pro", help="disable PRO", action="store_true")
     parser.add_argument('--ref_alt_col', help='name of ALT col', default='ALT')
     parser.add_argument('--ref_pro_col', help='name of PRO col', default='PRO')
-    
+    parser.add_argument('--workers', help='number of workers', type=int, default=-1)
+
+
     #parser.add_argument("--outdir", help="output dir", default='.')
     parser.add_argument("--outfile", help="output filename", required=True)
 
@@ -843,28 +854,37 @@ if __name__ == '__main__':
     if args.disable_pro:
         disable_organism = 'PRO'
     disable_nutrient = 'c' if args.disable_c else None
+    model_name = os.path.splitext(os.path.basename(args.outfile))[0]
 
     if args.optimize:
         assert(len(args.params_opt))
         result = genetic_optimization(args.params_opt, ref_df,
                                       disable_organism=disable_organism, disable_nutrient=disable_nutrient,
-                                      ref_pro_col=args.ref_pro_col, ref_alt_col=args.ref_alt_col, )
+                                      ref_pro_col=args.ref_pro_col, ref_alt_col=args.ref_alt_col, workers= args.workers)
         pprint.pprint(result)
-        with open(args.outfile, 'w') as fp:
-            json.dump(result, fp)
+        success = result.success
+        res_dict = {
+            'fun': result.fun,
+             'message': result.message,
+             'nfev': result.nfev,
+             'nit': result.nit,
+             'success': result.success,
+            'model_name' : model_name,
+        }
+        res_dict.update({i:v for i,v in zip (args.params_opt, result.x)})
+        pd.DataFrame([res_dict]).to_csv(args.outfile)
 
     else:
         # simulate (no optimization)
         reference_days = ref_df['day'].unique().tolist()
         max_day = int(ref_df['day'].max()) + 1
         num_iterations = max_day * 3600 * 24
-        init_x_p, init_x_a = compute_x_init(ref_df, args.ref_pro_col, args.ref_alt_col)
+        init_x_p, init_x_a = compute_x_init(ref_df, args.ref_pro_col, args.ref_alt_col, disable_organism)
         collect_every = 3600*4
         m, res, ref_res = run_model(args.param_values, args.param_names, reference_days, num_iterations, collect_every,
                                     disable_organism, disable_nutrient, init_x_p, init_x_a)
         res_df = pd.DataFrame(res)
         pdf_fpath = f'{os.path.splitext(args.outfile)[0]}.pdf'
-        model_name = os.path.splitext(os.path.basename(args.outfile))[0]
         display_simulation_results_to_pdf(res_df, m, model_name, pdf_fpath,
                                           #reference_FL_df=ref_fl_df,
                                           reference_FCM_df=ref_df,
