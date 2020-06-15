@@ -1416,8 +1416,9 @@ def get_fcm_df():
     fcmdf = pd.concat(fcmdflist)
     fcmdf.loc[fcmdf.PRO == 'C9B', 'PRO'] = 'MIT0604'
     fcmdf['day'] = pd.to_numeric(fcmdf['day'])
+    return fcmdf
 
-def gen_FL2cells_model():
+def get_prev_fcm_df():
     data_dpath = r'fcm_and_fl'
     csv_fnames = [ n for n in os.listdir(data_dpath) if n.endswith('.csv')]
     temp_dfs = [_load_fcm_fl_csv(data_dpath, fname) for fname in csv_fnames]
@@ -1425,6 +1426,10 @@ def gen_FL2cells_model():
     prevfcm_df.loc[prevfcm_df['MODE']== 'PRO99','MODE'] = 'pro99'
     prevfcm_df.loc[prevfcm_df.Sample == '9313 LD_FL1', 'PRO'] = 'MIT9313'
     prevfcm_df = prevfcm_df.fillna({'ALT': 'N/A'}, )
+    return prevfcm_df
+
+def gen_FL2cells_model():
+    prevfcm_df = get_prev_fcm_df()
     fl_df = prevfcm_df.loc[prevfcm_df.METHOD.isin(['FL']),['EXP','day', 'VALUE']].sort_values(by='day')
     fcm_df = prevfcm_df.loc[prevfcm_df.METHOD.isin(['FCM'])].sort_values(by='day')
     compdf = pd.merge_asof(fcm_df, fl_df, on='day', by='EXP', direction='nearest', suffixes=('','_FL'), tolerance=1 )
