@@ -135,7 +135,9 @@ class ModelProALT:
             # uptake (umol N cell-1 day-1), /86400 for per sec
             ('v_n_max_p', 'V_N_max^P', 1.9e-9),
             ('v_c_max_p', 'V_C_max^P', 8e-9),
-            ('v_in_max_a', 'V_IN_max^A', 1.9e-9 * pro_alt_vol_ratio**0.67 / 10 ),
+            # disable inorganic N consumption
+            #('v_in_max_a', 'V_IN_max^A', 1.9e-9 * pro_alt_vol_ratio**0.67 / 10 ),
+            ('v_in_max_a', 'V_IN_max^A', 0 ),
             ('v_n_max_a', 'V_N_max^A', 1.9e-9 * pro_alt_vol_ratio**0.67 ),
             ('v_c_max_a', 'V_C_max^A', 8e-9* pro_alt_vol_ratio**0.67),
             # ('v_n_max_p', 'V_N_max^P', 9.1e-9 * vol**0.67),
