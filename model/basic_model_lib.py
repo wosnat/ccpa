@@ -555,10 +555,10 @@ class DisplayModel:
     ALT_FCM_COLOR = 'PaleGoldenrod'
     N_COLOR = 'royalblue'
     ON_COLOR = 'PowderBlue'
-    REF_ON_COLOR = 'PowderBlue'
+    REF_ON_COLOR = 'DeepSkyBlue'
     C_COLOR = 'FireBrick'
     OC_COLOR = 'LightCoral'
-    REF_OC_COLOR = 'PowderBlue'
+    REF_OC_COLOR = 'LightSalmon'
     QUOTA_COLOR='red'
 
     mcolors = {
@@ -686,6 +686,13 @@ def display_simulation_results(res_df, model, model_name, reference_FL_df=None, 
             d.display_quota('a', 'c')
             plt.show()
 
+
+def _savefig(pdf):
+    lgd = plt.legend()
+    pdf.savefig(bbox_extra_artists=(lgd,), bbox_inches='tight')
+    plt.close()
+
+
 def display_simulation_results_to_pdf(res_df, model, model_name, pdf_fpath, reference_FL_df=None, reference_FCM_df=None,
                                pro_only=False, n_only=False, max_day=None,
                                       ref_pro_col='PRO', ref_alt_col='ALT', ):
@@ -695,60 +702,56 @@ def display_simulation_results_to_pdf(res_df, model, model_name, pdf_fpath, refe
 
         # cells
         d.display_cells()
-        pdf.savefig()
-        plt.close()
+        _savefig(pdf)
         d.display_cells(logscale=True)
-        pdf.savefig()
-        plt.close()
+        _savefig(pdf)
 
         #biomass
         d.display_biomass('n')
-        pdf.savefig()
-        plt.close()
+        _savefig(pdf)
         if not n_only:
             d.display_biomass('c')
-            pdf.savefig()
-            plt.close()
+            _savefig(pdf)
 
         # quotas
         d.display_quota('p', 'n')
-        pdf.savefig()
-        plt.close()
+        _savefig(pdf)
         if not n_only:
             d.display_quota('p', 'c')
-            pdf.savefig()
-            plt.close()
+            _savefig(pdf)
         if not pro_only:
             d.display_quota('a', 'n')
-            pdf.savefig()
-            plt.close()
+            _savefig(pdf)
             if not n_only:
                 d.display_quota('a', 'c')
-                pdf.savefig()
-                plt.close()
+                _savefig(pdf)
 
 
 from scipy.optimize import differential_evolution
 
 
-def genetic_optimization(param_names, ref_df, disable_organism, disable_nutrient, ref_pro_col, ref_alt_col, workers):
-
+def genetic_optimization(param_names, ref_df, disable_organism, disable_nutrient, ref_pro_col, ref_alt_col,
+                         workers, add_init, optimize_all):
+    m = ModelProALT()
     reference_days = ref_df['day'].unique().tolist()
     max_day = int(ref_df['day'].max()) + 1
     num_iterations = max_day * 3600 * 24
+    if add_init:
+        init = [m.get_param_val(i) for i in param_names]
+    else:
+        init = 'latinhypercube'
     # optimize_params = dict(ref_df=ref_df, param_names=param_names, reference_days=reference_days, num_iterations=num_iterations,
     #                                          disable_organism=disable_organism, disable_nutrient=disable_nutrient,
     #                                          ref_pro_col=ref_pro_col, ref_alt_col=ref_alt_col)
     optimize_params = (ref_df, param_names, reference_days, num_iterations,
                                              disable_organism, disable_nutrient,
-                                             ref_pro_col, ref_alt_col)
+                                             ref_pro_col, ref_alt_col, optimize_all)
 
     # opt_func = lambda x : model_optimize(x, ref_df, param_names, reference_days, num_iterations,
     #                                          disable_organism=disable_organism, disable_nutrient=disable_nutrient,
     #                                          ref_pro_col=ref_pro_col, ref_alt_col=ref_alt_col, )
 
     def compute_bounds(param_name):
-        m = ModelProALT()
         i = m.get_param_val(param_name)
         if i < 0.1:
             return (i/10, i*10)
@@ -758,19 +761,53 @@ def genetic_optimization(param_names, ref_df, disable_organism, disable_nutrient
         
     
     bounds = [compute_bounds(i) for i in param_names]
-    result = differential_evolution(model_optimize, bounds, disp=True, workers=workers, #updating='deferred',
-                                    args=optimize_params)
+    result = differential_evolution(model_optimize_all, bounds, disp=True, workers=workers, #updating='deferred',
+                                    args=optimize_params, init=init)
     return result
+
+def model_optimize_all(param_values, ref_df, param_names, reference_days, num_iterations, disable_organism,
+                       disable_nutrient, ref_pro_col, ref_alt_col, optimize_all):
+    if optimize_all:
+        result = 0
+        result += model_optimize(
+            param_values, ref_df, param_names, reference_days, num_iterations, disable_nutrient=disable_nutrient,
+            disable_organism=None, ref_pro_col='PRO_CO', ref_alt_col='ALT_CO'
+        )
+        result += model_optimize(
+            param_values, ref_df, param_names, reference_days, num_iterations, disable_nutrient=disable_nutrient,
+            disable_organism='PRO', ref_pro_col='PRO', ref_alt_col='ALT'
+        )
+        result += model_optimize(
+            param_values, ref_df, param_names, reference_days, num_iterations, disable_nutrient=disable_nutrient,
+            disable_organism='ALT', ref_pro_col='PRO', ref_alt_col='ALT'
+        )
+        return result
+    else:
+        return model_optimize(param_values, ref_df, param_names, reference_days, num_iterations, disable_organism,
+                           disable_nutrient, ref_pro_col, ref_alt_col)
 
 
 def model_optimize(param_values, ref_df, param_names, reference_days, num_iterations, disable_organism,
                        disable_nutrient, ref_pro_col, ref_alt_col):
+    """
+
+    :rtype: int
+    """
     collect_every = None
     init_x_p, init_x_a = compute_x_init(ref_df, ref_pro_col, ref_alt_col, disable_organism)
             
     m, res, ref_res = run_model(param_values, param_names, reference_days, num_iterations, collect_every,
                                 disable_organism, disable_nutrient, init_x_p, init_x_a)
     ref_res_df = pd.DataFrame(ref_res)
+    if ((~np.isfinite(ref_res_df)).any().any() or
+            ref_res_df.isna().any().any() or
+            (ref_res_df.shape[0] == 0) or
+            (ref_res_df.lt(0).any().any())
+    ):
+        # bad solution
+        print('bad')
+        return 100000
+
     ref_col_list = ['day']
     if disable_organism != 'ALT':
         ref_col_list.append(ref_alt_col)
@@ -779,10 +816,6 @@ def model_optimize(param_values, ref_df, param_names, reference_days, num_iterat
         
     t = pd.merge(ref_res_df[['day', 'x_p', 'x_a']], ref_df[ref_col_list], on='day')
     #print(t)
-    if (~np.isfinite(t)).any().any() or t.isna().any().any() or (t.shape[0] == 0):
-        # bad solution
-        print('bad')
-        return 100000
     res = 0
     if disable_organism != 'PRO':
         res += metrics.mean_squared_log_error(t[ref_pro_col] * 1000, t['x_p'] )
@@ -832,10 +865,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run models.')
     parser.add_argument("--optimize", help="run optimization (default: run model",
                         action="store_true")
+    parser.add_argument("--opt_add_init", help="specify init values in optimization",
+                        action="store_true")
     parser.add_argument('--params_opt', nargs='*', help='optimization params', default=[])
     parser.add_argument('--param_values', nargs='*', help='override param values', default=[])
     parser.add_argument('--param_names', nargs='*', help='override param names', default=[])
     parser.add_argument('--ref_csv', help='reference data (FCM cells/ml), csv file', required=True)
+
+    parser.add_argument("--optimize_all", help="optimize all options", action="store_true")
     parser.add_argument("--disable_c", help="disable C", action="store_true")
     parser.add_argument("--disable_alt", help="disable ALT", action="store_true")
     parser.add_argument("--disable_pro", help="disable PRO", action="store_true")
@@ -859,10 +896,13 @@ if __name__ == '__main__':
     model_name = os.path.splitext(os.path.basename(args.outfile))[0]
 
     if args.optimize:
+        add_init=False
         assert(len(args.params_opt))
         result = genetic_optimization(args.params_opt, ref_df,
                                       disable_organism=disable_organism, disable_nutrient=disable_nutrient,
-                                      ref_pro_col=args.ref_pro_col, ref_alt_col=args.ref_alt_col, workers= args.workers)
+                                      ref_pro_col=args.ref_pro_col, ref_alt_col=args.ref_alt_col,
+                                      workers= args.workers,
+                                      add_init=args.opt_add_init, optimize_all=args.optimize_all)
         pprint.pprint(result)
         success = result.success
         res_dict = {
