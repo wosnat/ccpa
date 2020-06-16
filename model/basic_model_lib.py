@@ -146,9 +146,13 @@ class ModelProALT:
             # ('v_c_max_a', 'V_C_max^A', 9.1e-9 * vol**0.67),
 
             # growth rates. day-1 (was 1e-5 sec-1),
-            ('mu_inf_p', 'mu_inf^P', 0.86),
-            ('mu_inf_a', 'mu_inf^A', 0.86*6),
-
+            # 16/6/2020 - changed based on Tal's PRO MED4
+            #('mu_inf_p', 'mu_inf^P', 0.86),
+            ('mu_inf_p', 'mu_inf^P', 0.444825),
+            #('mu_inf_a', 'mu_inf^A', 0.86*6),
+            # 16/6/2020 - changed based on Tal's ALT 1A3
+            ('mu_inf_a', 'mu_inf^A', 0.973535),
+            
             # k - half saturation umol Liter-1
 
             ('k_n_p', 'k_N^P', 0.17 * pro_vol**0.27),
@@ -179,8 +183,12 @@ class ModelProALT:
             # ('q_c_max_a', 'Q_C_max^A', (1.36e-9) * 3 * redfield_C_to_N * vol ** 0.77),
 
             # mortality - day-1
-            ('mortality_p', 'mortality^P', 0.1),
-            ('mortality_a', 'mortality^A', 0.1),
+            # 16/6/2020 - changed based on Tal's PRO MED4
+            #('mortality_p', 'mortality^P', 0.1),
+            ('mortality_p', 'mortality^P', 0.2),
+            #('mortality_a', 'mortality^A', 0.1),
+            # 16/6/2020 - changed based on Tal's ALT 1A3
+            ('mortality_a', 'mortality^A', 0.01),
 
             # CO2 parameters
             ('r0_p', 'r0^P', 0.18),   # dark respiration, sec-1 = 0.18 d-1, Geider & Osborne 1989
