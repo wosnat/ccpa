@@ -605,19 +605,20 @@ class DisplayModel:
         return df.loc[df['day'] < max_day]
         
     def display_quota(self, type, nutrient):
-        i = type
-        n = nutrient
-        q = f'q_{n}_{i}'
-        self.res_df[q] = self.res_df[f'b_{n}_{i}'] / self.res_df[f'x_{i}']
-        sns.lineplot(data=self.res_df, x='day', y=q, label=q, color=self.mcolors[q], lw=5)
+        if self.model is not None:
+            i = type
+            n = nutrient
+            q = f'q_{n}_{i}'
+            self.res_df[q] = self.res_df[f'b_{n}_{i}'] / self.res_df[f'x_{i}']
+            sns.lineplot(data=self.res_df, x='day', y=q, label=q, color=self.mcolors[q], lw=5)
 
-        for q in [
-             f'q_{n}_min_{i}', f'q_{n}_max_{i}', 
-        ]:
-            sns.lineplot(data=self.res_df, x='day', y=self.model.get_param_val(q), label=q, color=self.QUOTA_COLOR)
-        plt.legend(bbox_to_anchor=(1,1))
-        plt.ylabel(f'umol {n.upper()}/cell')
-        plt.title(f'{self.model_name} - Quota q_{n}_{i}')
+            for q in [
+                 f'q_{n}_min_{i}', f'q_{n}_max_{i}', 
+            ]:
+                sns.lineplot(data=self.res_df, x='day', y=self.model.get_param_val(q), label=q, color=self.QUOTA_COLOR)
+            plt.legend(bbox_to_anchor=(1,1))
+            plt.ylabel(f'umol {n.upper()}/cell')
+            plt.title(f'{self.model_name} - Quota q_{n}_{i}')
         
 
     def display_biomass(self, nutrient):
@@ -644,11 +645,12 @@ class DisplayModel:
         if self.reference_FL_df is not None:
             sns.scatterplot(x=self.reference_FL_df.day, y=self.reference_FL_df.cells*1000,
                             label='PRO, ref FL', color=self.PRO_FL_COLOR, s=50, ax=ax)
-        sns.scatterplot(x=self.reference_FCM_df.day, y=self.reference_FCM_df[self.ref_pro_col]*1000,
-                        label='PRO, ref FCM', color=self.PRO_FCM_COLOR, s=100, ax=ax)
-        if not self.pro_only:
-            sns.scatterplot(x=self.reference_FCM_df.day, y=self.reference_FCM_df[self.ref_alt_col]*1000,
-                            label='ALT, ref FCM', color=self.ALT_FCM_COLOR, s=100, ax=ax)
+        if self.reference_FCM_df is not None:
+            sns.scatterplot(x=self.reference_FCM_df.day, y=self.reference_FCM_df[self.ref_pro_col]*1000,
+                            label='PRO, ref FCM', color=self.PRO_FCM_COLOR, s=100, ax=ax)
+            if not self.pro_only:
+                sns.scatterplot(x=self.reference_FCM_df.day, y=self.reference_FCM_df[self.ref_alt_col]*1000,
+                                label='ALT, ref FCM', color=self.ALT_FCM_COLOR, s=100, ax=ax)
             
         plt.legend(bbox_to_anchor=(1,1))
         plt.ylabel(f'cells/L')
@@ -887,6 +889,7 @@ if __name__ == '__main__':
     parser.add_argument('--ref_alt_col', help='name of ALT col', default='ALT')
     parser.add_argument('--ref_pro_col', help='name of PRO col', default='PRO')
     parser.add_argument('--workers', help='number of workers', type=int, default=-1)
+    parser.add_argument('--maxday', help='max day of simulation', type=int, default=-1)
 
 
     #parser.add_argument("--outdir", help="output dir", default='.')
@@ -927,7 +930,9 @@ if __name__ == '__main__':
     else:
         # simulate (no optimization)
         reference_days = ref_df['day'].unique().tolist()
-        max_day = int(ref_df['day'].max()) + 1
+        max_day = args.maxday
+        if max_day == -1:
+            max_day = int(ref_df['day'].max()) + 1
         num_iterations = max_day * 3600 * 24
         init_x_p, init_x_a = compute_x_init(ref_df, args.ref_pro_col, args.ref_alt_col, disable_organism)
         collect_every = 3600*4
