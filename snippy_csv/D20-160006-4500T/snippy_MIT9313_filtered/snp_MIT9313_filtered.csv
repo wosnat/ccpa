@@ -1,0 +1,50 @@
+CHROM,POS,TYPE,REF,ALT,EVIDENCE,FTYPE,STRAND,NT_POS,AA_POS,EFFECT,LOCUS_TAG,GENE,PRODUCT
+NC_005071,66297,del,GC,G,G:27 GC:0,CDS,+,908/1033,303/343,frameshift_variant c.908delC p.Ala303fs,AKG35_RS00340,,aspartate-semialdehyde dehydrogenase
+NC_005071,99525,del,GT,G,G:50 GT:0
+NC_005071,99578,snp,T,A,A:58 T:0,CDS,+,44/2397,15/798,stop_gained c.44T>A p.Leu15*,AKG35_RS00470,,hypothetical protein
+NC_005071,292217,complex,GTGTT,CTGAC,CTGAC:39 GTGTT:0,CDS,-,2003/5298,667/1765,missense_variant c.1999_2003delAACACinsGTCAG p.AsnThr667ValSer,AKG35_RS01355,,hemolysin-type calcium-binding domain-containing protein
+NC_005071,292226,snp,T,G,G:39 T:0,CDS,-,1994/5298,665/1765,missense_variant c.1994A>C p.Tyr665Ser,AKG35_RS01355,,hemolysin-type calcium-binding domain-containing protein
+NC_005071,296103,snp,T,G,G:44 T:0,CDS,+,925/1815,309/604,missense_variant c.925T>G p.Ser309Ala,AKG35_RS01365,lepA,elongation factor 4
+NC_005071,311423,snp,G,T,T:26 G:0,CDS,-,758/1977,253/658,missense_variant c.758C>A p.Thr253Asn,AKG35_RS01440,,PBP1A family penicillin-binding protein
+NC_005071,314559,del,TG,T,T:31 TG:1,CDS,+,232/703,78/233,frameshift_variant c.232delG p.Ala78fs,AKG35_RS01460,ubiE,"bifunctional demethylmenaquinone methyltransferase/2-methoxy-6-polyprenyl-1,4-benzoquinol methylase UbiE"
+NC_005071,321336,snp,T,G,G:50 T:0,CDS,-,99/621,33/206,stop_lost c.99A>C p.Ter33Tyrext*?,AKG35_RS01490,,VTT domain-containing protein
+NC_005071,339918,del,AC,A,A:37 AC:0,CDS,-,418/601,140/199,frameshift_variant c.418delG p.Val140fs,AKG35_RS01575,,thermonuclease family protein
+NC_005071,351243,snp,A,T,T:30 A:0
+NC_005071,385662,snp,G,T,T:39 G:0,CDS,+,413/681,138/226,missense_variant c.413G>T p.Ser138Ile,AKG35_RS01805,,hydantoin utilization protein A
+NC_005071,394742,snp,A,G,G:40 A:0,CDS,+,655/942,219/313,missense_variant c.655A>G p.Arg219Gly,AKG35_RS01845,,RpoD/SigA family RNA polymerase sigma factor
+NC_005071,477712,snp,A,G,G:39 A:0,CDS,+,1043/1062,348/353,missense_variant c.1043A>G p.Gln348Arg,AKG35_RS02260,glk,glucokinase
+NC_005071,547508,snp,C,A,A:41 C:0
+NC_005071,560735,snp,G,T,T:31 G:0,CDS,-,738/885,246/294,missense_variant c.738C>A p.Asp246Glu,AKG35_RS02690,,GNAT family N-acetyltransferase
+NC_005071,685346,snp,N,G,G:30 N:0
+NC_005071,778265,del,TG,T,T:29 TG:0,CDS,+,422/595,141/197,frameshift_variant c.422delG p.Cys141fs,AKG35_RS03750,,DUF1995 family protein
+NC_005071,790551,snp,G,A,A:36 G:0,CDS,+,530/921,177/306,missense_variant c.530G>A p.Gly177Asp,AKG35_RS03800,,branched-chain amino acid transaminase
+NC_005071,799128,snp,G,T,T:38 G:0,CDS,+,116/1719,39/572,missense_variant c.116G>T p.Ser39Ile,AKG35_RS03835,,DUF3370 family protein
+NC_005071,799464,snp,T,C,C:43 T:0,CDS,+,452/1719,151/572,missense_variant c.452T>C p.Ile151Thr,AKG35_RS03835,,DUF3370 family protein
+NC_005071,855524,snp,G,A,A:55 G:0,CDS,+,423/900,141/299,synonymous_variant c.423G>A p.Gly141Gly,AKG35_RS04060,,putative selenate ABC transporter substrate-binding protein
+NC_005071,882382,snp,C,A,A:32 C:0,CDS,-,62/1323,21/440,missense_variant c.62G>T p.Gly21Val,AKG35_RS04185,,ATP-binding protein
+NC_005071,882422,snp,C,A,A:36 C:0,CDS,-,22/1323,8/440,missense_variant c.22G>T p.Ala8Ser,AKG35_RS04185,,ATP-binding protein
+NC_005071,911918,snp,A,C,C:51 A:0,CDS,-,9/762,3/253,synonymous_variant c.9T>G p.Thr3Thr,AKG35_RS04360,,hypothetical protein
+NC_005071,922569,complex,TTG,GTT,GTT:24 TTG:0
+NC_005071,922758,ins,T,TA,TA:39 T:0
+NC_005071,1123458,snp,G,A,A:35 G:0
+NC_005071,1130672,ins,A,AC,AC:38 A:0,CDS,+,987/1403,329/466,frameshift_variant c.986dupC p.Ser331fs,AKG35_RS05645,trmFO,FADH(2)-oxidizing methylenetetrahydrofolate--tRNA-(uracil(54)-C(5))- methyltransferase TrmFO
+NC_005071,1241401,snp,A,G,G:39 A:0,CDS,-,36/390,12/129,synonymous_variant c.36T>C p.Asn12Asn,AKG35_RS06170,,hypothetical protein
+NC_005071,1272132,snp,C,T,T:35 C:0,CDS,+,1352/1398,451/465,missense_variant c.1352C>T p.Thr451Ile,AKG35_RS06325,psbC,photosystem II reaction center protein CP43
+NC_005071,1461735,snp,C,G,G:40 C:0,CDS,+,586/2172,196/723,missense_variant c.586C>G p.Gln196Glu,AKG35_RS07325,,polyribonucleotide nucleotidyltransferase
+NC_005071,1493600,snp,C,A,A:35 C:0,CDS,+,973/1473,325/490,missense_variant c.973C>A p.Leu325Ile,AKG35_RS07500,,leucyl aminopeptidase
+NC_005071,1547911,snp,G,A,A:36 G:0,CDS,+,484/1695,162/564,missense_variant c.484G>A p.Glu162Lys,AKG35_RS07800,,NAD+ synthase
+NC_005071,1563850,snp,C,A,A:27 C:0
+NC_005071,1595971,snp,T,C,C:50 T:0,CDS,-,581/3294,194/1097,missense_variant c.581A>G p.Asp194Gly,AKG35_RS08030,rpoB,DNA-directed RNA polymerase subunit beta
+NC_005071,1673691,snp,G,A,A:42 G:0,CDS,+,70/1176,24/391,missense_variant c.70G>A p.Ala24Thr,AKG35_RS08400,,FtsX-like permease family protein
+NC_005071,1722592,snp,G,C,C:52 G:0,CDS,-,24/708,8/235,synonymous_variant c.24C>G p.Ser8Ser,AKG35_RS08630,,hypothetical protein
+NC_005071,1872062,snp,G,C,C:59 G:0,CDS,-,4259/4584,1420/1527,missense_variant c.4259C>G p.Thr1420Ser,AKG35_RS09515,gltB,glutamate synthase large subunit
+NC_005071,2021366,snp,T,C,C:43 T:0
+NC_005071,2065131,snp,G,C,C:34 G:0,CDS,-,181/246,61/81,missense_variant c.181C>G p.His61Asp,AKG35_RS10405,psaC,photosystem I iron-sulfur center protein PsaC
+NC_005071,2189970,snp,T,C,C:41 T:0
+NC_005071,2192676,snp,A,G,G:35 A:0
+NC_005071,2233744,del,TG,T,T:31 TG:0
+NC_005071,2233774,del,TG,T,T:36 TG:0
+NC_005071,2255661,ins,A,AC,AC:29 A:0,CDS,+,349/393,117/130,frameshift_variant c.348dupC p.Phe117fs,AKG35_RS11410,,hypothetical protein
+NC_005071,2287562,ins,A,AC,AC:26 A:0,CDS,+,901/1371,301/456,frameshift_variant c.900dupC p.Thr301fs,AKG35_RS11525,,TRAP transporter large permease subunit
+NC_005071,2332718,del,CG,C,C:31 CG:0,CDS,-,487/655,163/217,frameshift_variant c.487delC p.Arg163fs,AKG35_RS11755,,TIGR03943 family protein
+NC_005071,2358502,snp,A,G,G:56 A:0,CDS,-,361/684,121/227,missense_variant c.361T>C p.Tyr121His,AKG35_RS11895,,urease accessory protein UreF

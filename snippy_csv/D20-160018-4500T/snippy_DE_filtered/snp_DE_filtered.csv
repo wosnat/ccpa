@@ -1,0 +1,118 @@
+CHROM,POS,TYPE,REF,ALT,EVIDENCE,FTYPE,STRAND,NT_POS,AA_POS,EFFECT,LOCUS_TAG,GENE,PRODUCT
+NC_011138,230256,snp,T,A,A:10 T:0,CDS,+,651/978,217/325,synonymous_variant c.651T>A p.Leu217Leu,MADE_RS01035,,class 1 fructose-bisphosphatase
+NC_011138,236022,snp,T,C,C:10 T:0,CDS,-,2013/2832,671/943,synonymous_variant c.2013A>G p.Ala671Ala,MADE_RS01070,uvrA,excinuclease ABC subunit UvrA
+NC_011138,338089,snp,G,T,T:11 G:0
+NC_011138,590179,complex,CCAG,TCAA,TCAA:10 CCAG:0,CDS,+,1365/1719,455/572,synonymous_variant c.1365_1368delCCAGinsTCAA p.457,MADE_RS02655,,acetolactate synthase 3 large subunit
+NC_011138,590194,snp,C,T,T:10 C:0,CDS,+,1380/1719,460/572,synonymous_variant c.1380C>T p.Thr460Thr,MADE_RS02655,,acetolactate synthase 3 large subunit
+NC_011138,727292,snp,G,A,A:10 G:0,CDS,-,762/1770,254/589,synonymous_variant c.762C>T p.Arg254Arg,MADE_RS03385,,DEAD/DEAH box helicase
+NC_011138,727337,complex,GCGG,ACGC,ACGC:10 GCGG:0,CDS,-,717/1770,238/589,synonymous_variant c.714_717delCCGCinsGCGT p.240,MADE_RS03385,,DEAD/DEAH box helicase
+NC_011138,727355,snp,T,C,C:10 T:0,CDS,-,699/1770,233/589,synonymous_variant c.699A>G p.Lys233Lys,MADE_RS03385,,DEAD/DEAH box helicase
+NC_011138,727364,snp,C,T,T:10 C:0,CDS,-,690/1770,230/589,synonymous_variant c.690G>A p.Pro230Pro,MADE_RS03385,,DEAD/DEAH box helicase
+NC_011138,727370,snp,G,A,A:10 G:0,CDS,-,684/1770,228/589,synonymous_variant c.684C>T p.Ile228Ile,MADE_RS03385,,DEAD/DEAH box helicase
+NC_011138,727400,complex,GGCAGTG,AGCTGTA,AGCTGTA:10 GGCAGTG:0,CDS,-,654/1770,216/589,synonymous_variant c.648_654delCACTGCCinsTACAGCT p.219,MADE_RS03385,,DEAD/DEAH box helicase
+NC_011138,727427,snp,G,A,A:10 G:0,CDS,-,627/1770,209/589,synonymous_variant c.627C>T p.Val209Val,MADE_RS03385,,DEAD/DEAH box helicase
+NC_011138,727439,snp,A,G,G:12 A:0,CDS,-,615/1770,205/589,synonymous_variant c.615T>C p.Asp205Asp,MADE_RS03385,,DEAD/DEAH box helicase
+NC_011138,891764,snp,C,T,T:12 C:0,CDS,+,249/1275,83/424,synonymous_variant c.249C>T p.Ile83Ile,MADE_RS04075,,cytochrome bc complex cytochrome b subunit
+NC_011138,891791,snp,G,A,A:11 G:0,CDS,+,276/1275,92/424,synonymous_variant c.276G>A p.Ser92Ser,MADE_RS04075,,cytochrome bc complex cytochrome b subunit
+NC_011138,891839,complex,TGGT,CGGC,CGGC:10 TGGT:0,CDS,+,324/1275,108/424,synonymous_variant c.324_327delTGGTinsCGGC p.110,MADE_RS04075,,cytochrome bc complex cytochrome b subunit
+NC_011138,891848,complex,CCAA,TCAG,TCAG:10 CCAA:0,CDS,+,333/1275,111/424,synonymous_variant c.333_336delCCAAinsTCAG p.113,MADE_RS04075,,cytochrome bc complex cytochrome b subunit
+NC_011138,1017472,snp,A,G,G:10 A:0,CDS,-,705/1293,235/430,synonymous_variant c.705T>C p.Tyr235Tyr,MADE_RS04630,eno,phosphopyruvate hydratase
+NC_011138,1271079,snp,G,A,A:10 G:0,CDS,+,483/1266,161/421,synonymous_variant c.483G>A p.Val161Val,MADE_RS05825,,tetratricopeptide repeat protein
+NC_011138,1271103,complex,TTTC,CTTT,CTTT:11 TTTC:0,CDS,+,507/1266,169/421,synonymous_variant c.507_510delTTTCinsCTTT p.171,MADE_RS05825,,tetratricopeptide repeat protein
+NC_011138,1271118,snp,G,A,A:11 G:0,CDS,+,522/1266,174/421,synonymous_variant c.522G>A p.Gln174Gln,MADE_RS05825,,tetratricopeptide repeat protein
+NC_011138,1271133,snp,A,T,T:11 A:0,CDS,+,537/1266,179/421,synonymous_variant c.537A>T p.Val179Val,MADE_RS05825,,tetratricopeptide repeat protein
+NC_011138,1271148,complex,GGCA,AGCG,AGCG:11 GGCA:0,CDS,+,552/1266,184/421,synonymous_variant c.552_555delGGCAinsAGCG p.186,MADE_RS05825,,tetratricopeptide repeat protein
+NC_011138,1271178,snp,G,A,A:10 G:0,CDS,+,582/1266,194/421,synonymous_variant c.582G>A p.Lys194Lys,MADE_RS05825,,tetratricopeptide repeat protein
+NC_011138,1271190,complex,GTTG,ATTA,ATTA:10 GTTG:0,CDS,+,594/1266,198/421,synonymous_variant c.594_597delGTTGinsATTA p.200,MADE_RS05825,,tetratricopeptide repeat protein
+NC_011138,1271199,snp,G,A,A:10 G:0,CDS,+,603/1266,201/421,synonymous_variant c.603G>A p.Leu201Leu,MADE_RS05825,,tetratricopeptide repeat protein
+NC_011138,1285684,snp,C,G,G:10 C:0,CDS,+,79/909,27/302,missense_variant c.79C>G p.Pro27Ala,MADE_RS05900,,TIGR03571 family LLM class oxidoreductase
+NC_011138,1285713,complex,GTTT,ATTC,ATTC:10 GTTT:0,CDS,+,108/909,36/302,synonymous_variant c.108_111delGTTTinsATTC p.38,MADE_RS05900,,TIGR03571 family LLM class oxidoreductase
+NC_011138,1307228,snp,G,A,A:10 G:0,CDS,+,405/438,135/145,synonymous_variant c.405G>A p.Gly135Gly,MADE_RS05985,,DUF2177 family protein
+NC_011138,1335767,snp,T,A,A:10 T:0,CDS,+,2100/2571,700/856,synonymous_variant c.2100T>A p.Val700Val,MADE_RS06100,,TonB-dependent receptor
+NC_011138,1335794,snp,A,T,T:10 A:0,CDS,+,2127/2571,709/856,missense_variant c.2127A>T p.Glu709Asp,MADE_RS06100,,TonB-dependent receptor
+NC_011138,1335803,snp,T,C,C:10 T:0,CDS,+,2136/2571,712/856,synonymous_variant c.2136T>C p.Gly712Gly,MADE_RS06100,,TonB-dependent receptor
+NC_011138,1335827,snp,T,A,A:12 T:0,CDS,+,2160/2571,720/856,synonymous_variant c.2160T>A p.Ala720Ala,MADE_RS06100,,TonB-dependent receptor
+NC_011138,1335851,snp,A,T,T:10 A:0,CDS,+,2184/2571,728/856,synonymous_variant c.2184A>T p.Val728Val,MADE_RS06100,,TonB-dependent receptor
+NC_011138,1335857,snp,T,C,C:10 T:0,CDS,+,2190/2571,730/856,synonymous_variant c.2190T>C p.Arg730Arg,MADE_RS06100,,TonB-dependent receptor
+NC_011138,1335866,snp,G,T,T:10 G:0,CDS,+,2199/2571,733/856,missense_variant c.2199G>T p.Glu733Asp,MADE_RS06100,,TonB-dependent receptor
+NC_011138,1376124,snp,G,A,A:10 G:0,CDS,-,534/915,178/304,synonymous_variant c.534C>T p.Asn178Asn,MADE_RS06285,cysD,sulfate adenylyltransferase subunit CysD
+NC_011138,1376133,snp,C,A,A:10 C:0,CDS,-,525/915,175/304,synonymous_variant c.525G>T p.Ser175Ser,MADE_RS06285,cysD,sulfate adenylyltransferase subunit CysD
+NC_011138,1376139,complex,GTAG,ATAA,ATAA:10 GTAG:0,CDS,-,519/915,172/304,synonymous_variant c.516_519delCTACinsTTAT p.174,MADE_RS06285,cysD,sulfate adenylyltransferase subunit CysD
+NC_011138,1503307,snp,C,A,A:12 C:0
+NC_011138,1503331,snp,A,G,G:12 A:0,CDS,+,6/1125,2/374,synonymous_variant c.6A>G p.Thr2Thr,MADE_RS06815,bioB,biotin synthase BioB
+NC_011138,1503338,complex,TA,AG,AG:12 TA:0,CDS,+,13/1125,5/374,missense_variant c.13_14delTAinsAG p.Tyr5Ser,MADE_RS06815,bioB,biotin synthase BioB
+NC_011138,1503347,complex,ACA,TCT,TCT:12 ACA:0,CDS,+,22/1125,8/374,missense_variant c.22_24delACAinsTCT p.Thr8Ser,MADE_RS06815,bioB,biotin synthase BioB
+NC_011138,1503360,snp,T,C,C:12 T:0,CDS,+,35/1125,12/374,missense_variant c.35T>C p.Ile12Thr,MADE_RS06815,bioB,biotin synthase BioB
+NC_011138,1503394,complex,AGAG,CGAA,CGAA:12 AGAG:0,CDS,+,69/1125,23/374,synonymous_variant c.69_72delAGAGinsCGAA p.25,MADE_RS06815,bioB,biotin synthase BioB
+NC_011138,1795466,snp,T,A,A:10 T:0,CDS,+,90/2388,30/795,synonymous_variant c.90T>A p.Leu30Leu,MADE_RS08075,pheT,phenylalanine--tRNA ligase subunit beta
+NC_011138,1945898,snp,G,T,T:11 G:0,CDS,+,105/459,35/152,synonymous_variant c.105G>T p.Ser35Ser,MADE_RS08685,rimP,ribosome maturation factor RimP
+NC_011138,1945931,snp,G,T,T:10 G:0,CDS,+,138/459,46/152,synonymous_variant c.138G>T p.Gly46Gly,MADE_RS08685,rimP,ribosome maturation factor RimP
+NC_011138,2141059,snp,T,A,A:11 T:1,CDS,+,1563/1773,521/590,synonymous_variant c.1563T>A p.Leu521Leu,MADE_RS09590,sdhA,succinate dehydrogenase flavoprotein subunit
+NC_011138,2141080,snp,G,A,A:10 G:1,CDS,+,1584/1773,528/590,synonymous_variant c.1584G>A p.Thr528Thr,MADE_RS09590,sdhA,succinate dehydrogenase flavoprotein subunit
+NC_011138,2141119,snp,A,T,T:11 A:1,CDS,+,1623/1773,541/590,synonymous_variant c.1623A>T p.Ala541Ala,MADE_RS09590,sdhA,succinate dehydrogenase flavoprotein subunit
+NC_011138,2141162,snp,C,T,T:10 C:0,CDS,+,1666/1773,556/590,synonymous_variant c.1666C>T p.Leu556Leu,MADE_RS09590,sdhA,succinate dehydrogenase flavoprotein subunit
+NC_011138,2141167,snp,T,C,C:10 T:1,CDS,+,1671/1773,557/590,synonymous_variant c.1671T>C p.Cys557Cys,MADE_RS09590,sdhA,succinate dehydrogenase flavoprotein subunit
+NC_011138,2460799,snp,T,C,C:10 T:0
+NC_011138,2460812,snp,A,C,C:10 A:0
+NC_011138,2674488,complex,TTAT,CTAC,CTAC:10 TTAT:0,CDS,+,888/2028,296/675,synonymous_variant c.888_891delTTATinsCTAC p.298,MADE_RS11875,metG,methionine--tRNA ligase
+NC_011138,2674503,snp,T,A,A:10 T:0,CDS,+,903/2028,301/675,synonymous_variant c.903T>A p.Leu301Leu,MADE_RS11875,metG,methionine--tRNA ligase
+NC_011138,2782791,snp,T,C,C:10 T:0,CDS,-,802/840,268/279,missense_variant c.802A>G p.Ile268Val,MADE_RS12350,,alpha/beta hydrolase
+NC_011138,2851947,snp,T,C,C:11 T:0,CDS,-,1461/2577,487/858,synonymous_variant c.1461A>G p.Glu487Glu,MADE_RS12620,clpB,ATP-dependent chaperone ClpB
+NC_011138,3009477,snp,C,T,T:10 C:0,CDS,+,363/1596,121/531,synonymous_variant c.363C>T p.His121His,MADE_RS13375,,isocitrate lyase
+NC_011138,3009486,snp,G,A,A:10 G:0,CDS,+,372/1596,124/531,synonymous_variant c.372G>A p.Thr124Thr,MADE_RS13375,,isocitrate lyase
+NC_011138,3009492,snp,T,G,G:11 T:0,CDS,+,378/1596,126/531,synonymous_variant c.378T>G p.Val126Val,MADE_RS13375,,isocitrate lyase
+NC_011138,3009498,snp,C,G,G:14 C:0,CDS,+,384/1596,128/531,synonymous_variant c.384C>G p.Ala128Ala,MADE_RS13375,,isocitrate lyase
+NC_011138,3009510,snp,G,A,A:13 G:0,CDS,+,396/1596,132/531,synonymous_variant c.396G>A p.Glu132Glu,MADE_RS13375,,isocitrate lyase
+NC_011138,3009516,complex,CACC,TACT,TACT:14 CACC:0,CDS,+,402/1596,134/531,synonymous_variant c.402_405delCACCinsTACT p.136,MADE_RS13375,,isocitrate lyase
+NC_011138,3009531,snp,G,A,A:14 G:0,CDS,+,417/1596,139/531,synonymous_variant c.417G>A p.Gln139Gln,MADE_RS13375,,isocitrate lyase
+NC_011138,3009540,snp,C,G,G:14 C:0,CDS,+,426/1596,142/531,synonymous_variant c.426C>G p.Ala142Ala,MADE_RS13375,,isocitrate lyase
+NC_011138,3009567,snp,A,G,G:14 A:0,CDS,+,453/1596,151/531,synonymous_variant c.453A>G p.Lys151Lys,MADE_RS13375,,isocitrate lyase
+NC_011138,3009579,snp,G,T,T:10 G:0,CDS,+,465/1596,155/531,synonymous_variant c.465G>T p.Ala155Ala,MADE_RS13375,,isocitrate lyase
+NC_011138,3224667,snp,G,A,A:10 G:0,CDS,-,930/2898,310/965,synonymous_variant c.930C>T p.Ser310Ser,MADE_RS14250,gcvP,aminomethyl-transferring glycine dehydrogenase
+NC_011138,3224702,snp,A,G,G:10 A:0,CDS,-,895/2898,299/965,synonymous_variant c.895T>C p.Leu299Leu,MADE_RS14250,gcvP,aminomethyl-transferring glycine dehydrogenase
+NC_011138,3374412,snp,A,T,T:12 A:1
+NC_011138,3430271,complex,CAA,TAG,TAG:11 CAA:0,CDS,-,150/2466,50/821,synonymous_variant c.148_150delTTGinsCTA p.51,MADE_RS15210,thrA,bifunctional aspartate kinase/homoserine dehydrogenase I
+NC_011138,3465981,snp,T,A,A:10 T:0,CDS,-,1833/2265,611/754,synonymous_variant c.1833A>T p.Ala611Ala,MADE_RS15400,,TonB-dependent receptor plug domain-containing protein
+NC_011138,3466005,snp,A,T,T:10 A:0,CDS,-,1809/2265,603/754,synonymous_variant c.1809T>A p.Thr603Thr,MADE_RS15400,,TonB-dependent receptor plug domain-containing protein
+NC_011138,3466011,complex,TTCAACA,CTCTACC,CTCTACC:10 TTCAACA:0,CDS,-,1803/2265,599/754,synonymous_variant c.1797_1803delTGTTGAAinsGGTAGAG p.602,MADE_RS15400,,TonB-dependent receptor plug domain-containing protein
+NC_011138,3466029,snp,T,G,G:10 T:0,CDS,-,1785/2265,595/754,synonymous_variant c.1785A>C p.Thr595Thr,MADE_RS15400,,TonB-dependent receptor plug domain-containing protein
+NC_011138,3466038,complex,ACCG,GCCA,GCCA:10 ACCG:0,CDS,-,1776/2265,591/754,synonymous_variant c.1773_1776delCGGTinsTGGC p.593,MADE_RS15400,,TonB-dependent receptor plug domain-containing protein
+NC_011138,3466047,complex,ACTT,GCTC,GCTC:10 ACTT:0,CDS,-,1767/2265,588/754,synonymous_variant c.1764_1767delAAGTinsGAGC p.590,MADE_RS15400,,TonB-dependent receptor plug domain-containing protein
+NC_011138,3815840,snp,G,A,A:10 G:0,CDS,-,639/1203,213/400,synonymous_variant c.639C>T p.Ile213Ile,MADE_RS16920,,NADH:ubiquinone reductase (Na(+)-transporting) subunit B
+NC_011138,3815846,snp,T,C,C:11 T:0,CDS,-,633/1203,211/400,synonymous_variant c.633A>G p.Ala211Ala,MADE_RS16920,,NADH:ubiquinone reductase (Na(+)-transporting) subunit B
+NC_011138,3815852,snp,G,A,A:11 G:0,CDS,-,627/1203,209/400,synonymous_variant c.627C>T p.Tyr209Tyr,MADE_RS16920,,NADH:ubiquinone reductase (Na(+)-transporting) subunit B
+NC_011138,3815870,snp,A,T,T:11 A:0,CDS,-,609/1203,203/400,synonymous_variant c.609T>A p.Ala203Ala,MADE_RS16920,,NADH:ubiquinone reductase (Na(+)-transporting) subunit B
+NC_011138,4025679,snp,A,G,G:10 A:0,CDS,+,60/450,20/149,synonymous_variant c.60A>G p.Pro20Pro,MADE_RS17850,dksA,RNA polymerase-binding protein DksA
+NC_011138,4025688,snp,T,A,A:10 T:0,CDS,+,69/450,23/149,synonymous_variant c.69T>A p.Pro23Pro,MADE_RS17850,dksA,RNA polymerase-binding protein DksA
+NC_011138,4025703,snp,A,G,G:10 A:0,CDS,+,84/450,28/149,synonymous_variant c.84A>G p.Glu28Glu,MADE_RS17850,dksA,RNA polymerase-binding protein DksA
+NC_011138,4055265,complex,TAA,AAT,AAT:10 TAA:0,CDS,-,1893/2103,631/700,missense_variant c.1891_1893delTTAinsATT p.Leu631Ile,MADE_RS17970,fusA,elongation factor G
+NC_011138,4055274,snp,G,A,A:10 G:0,CDS,-,1884/2103,628/700,synonymous_variant c.1884C>T p.Val628Val,MADE_RS17970,fusA,elongation factor G
+NC_011138,4060197,snp,T,C,C:10 T:0,CDS,-,2391/4173,797/1390,synonymous_variant c.2391A>G p.Thr797Thr,MADE_RS17985,rpoC,DNA-directed RNA polymerase subunit beta'
+NC_011138,4064916,snp,A,G,G:11 A:0,CDS,-,1782/4029,594/1342,synonymous_variant c.1782T>C p.Arg594Arg,MADE_RS17990,rpoB,DNA-directed RNA polymerase subunit beta
+NC_011138,4064925,snp,A,C,C:11 A:0,CDS,-,1773/4029,591/1342,synonymous_variant c.1773T>G p.Pro591Pro,MADE_RS17990,rpoB,DNA-directed RNA polymerase subunit beta
+NC_011138,4064936,snp,A,G,G:11 A:0,CDS,-,1762/4029,588/1342,synonymous_variant c.1762T>C p.Leu588Leu,MADE_RS17990,rpoB,DNA-directed RNA polymerase subunit beta
+NC_011138,4064990,snp,T,C,C:10 T:0,CDS,-,1708/4029,570/1342,missense_variant c.1708A>G p.Ile570Val,MADE_RS17990,rpoB,DNA-directed RNA polymerase subunit beta
+NC_011138,4064995,snp,G,A,A:10 G:0,CDS,-,1703/4029,568/1342,missense_variant c.1703C>T p.Pro568Leu,MADE_RS17990,rpoB,DNA-directed RNA polymerase subunit beta
+NC_011138,4065030,snp,A,G,G:12 A:0,CDS,-,1668/4029,556/1342,synonymous_variant c.1668T>C p.Tyr556Tyr,MADE_RS17990,rpoB,DNA-directed RNA polymerase subunit beta
+NC_011138,4065057,snp,C,T,T:11 C:0,CDS,-,1641/4029,547/1342,synonymous_variant c.1641G>A p.Glu547Glu,MADE_RS17990,rpoB,DNA-directed RNA polymerase subunit beta
+NC_011138,4066936,snp,T,A,A:10 T:0
+NC_011138,4067016,snp,C,T,T:10 C:0
+NC_011138,4068619,snp,C,T,T:14 C:0,CDS,-,360/696,120/231,synonymous_variant c.360G>A p.Ala120Ala,MADE_RS18005,rplA,50S ribosomal protein L1
+NC_011138,4279886,complex,GGCA,CGAG,CGAG:11 GGCA:0,CDS,-,333/897,110/298,missense_variant c.330_333delTGCCinsCTCG p.Ala111Ser,MADE_RS18955,,protoheme IX farnesyltransferase
+NC_011138,4279905,complex,AGC,GCT,GCT:10 AGC:0,CDS,-,314/897,104/298,missense_variant c.312_314delGCTinsAGC p.Leu105Ala,MADE_RS18955,,protoheme IX farnesyltransferase
+NC_011138,4279919,snp,A,G,G:10 A:0,CDS,-,300/897,100/298,synonymous_variant c.300T>C p.Phe100Phe,MADE_RS18955,,protoheme IX farnesyltransferase
+NC_011138,4279925,complex,TGCAATACCC,CGAAATGCCT,CGAAATGCCT:10 TGCAATACCC:0,CDS,-,294/897,95/298,missense_variant c.285_294delGGGTATTGCAinsAGGCATTTCG p.Ala98Ser,MADE_RS18955,,protoheme IX farnesyltransferase
+NC_011138,4279963,complex,GC,AT,AT:10 GC:0,CDS,-,256/897,85/298,missense_variant c.255_256delGCinsAT p.Leu86Phe,MADE_RS18955,,protoheme IX farnesyltransferase
+NC_011138,4279995,complex,TTG,CTA,CTA:11 TTG:0,CDS,-,224/897,74/298,missense_variant c.222_224delCAAinsTAG p.Asn75Ser,MADE_RS18955,,protoheme IX farnesyltransferase
+NC_011138,4280054,snp,A,G,G:10 A:0,CDS,-,165/897,55/298,synonymous_variant c.165T>C p.Gly55Gly,MADE_RS18955,,protoheme IX farnesyltransferase
+NC_011138,4346740,complex,CGTT,TGTA,TGTA:10 CGTT:0,CDS,+,804/846,268/281,synonymous_variant c.804_807delCGTTinsTGTA p.270,MADE_RS19290,cysQ,"3'(2'),5'-bisphosphate nucleotidase CysQ"
+NC_011138,4346774,complex,ACGCAT,CAGCAC,CAGCAC:12 ACGCAT:0,CDS,+,838/846,280/281,missense_variant c.838_843delACGCATinsCAGCAC p.Thr280Gln,MADE_RS19290,cysQ,"3'(2'),5'-bisphosphate nucleotidase CysQ"
+NC_011138,4346784,snp,A,G,G:14 A:0
+NC_011138,4346790,complex,CAAA,TAAT,TAAT:14 CAAA:0
+NC_011138,4346798,snp,A,T,T:14 A:0
+NC_011138,4346811,snp,C,T,T:16 C:0
+NC_011138,4346862,snp,C,A,A:11 C:0
+NC_011138,4462432,snp,C,A,A:10 C:0,CDS,-,879/1386,293/461,synonymous_variant c.879G>T p.Thr293Thr,MADE_RS19835,atpD,F0F1 ATP synthase subunit beta
+NC_011138,4462441,complex,GCCA,ACCT,ACCT:10 GCCA:0,CDS,-,870/1386,289/461,synonymous_variant c.867_870delTGGCinsAGGT p.291,MADE_RS19835,atpD,F0F1 ATP synthase subunit beta
+NC_011138,4465884,snp,A,G,G:10 A:0,CDS,-,468/534,156/177,synonymous_variant c.468T>C p.Gly156Gly,MADE_RS19850,atpH,F0F1 ATP synthase subunit delta
+NC_011138,4465893,snp,T,A,A:12 T:0,CDS,-,459/534,153/177,synonymous_variant c.459A>T p.Ile153Ile,MADE_RS19850,atpH,F0F1 ATP synthase subunit delta

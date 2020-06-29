@@ -1,0 +1,15 @@
+CHROM,POS,TYPE,REF,ALT,EVIDENCE,FTYPE,STRAND,NT_POS,AA_POS,EFFECT,LOCUS_TAG,GENE,PRODUCT
+NZ_CP007753,210561,snp,C,T,T:90 C:0,CDS,-,1057/2310,353/769,missense_variant c.1057G>A p.Gly353Arg,EW14_RS01110,,"bifunctional (p)ppGpp synthetase/guanosine-3',5'-bis(diphosphate) 3'-pyrophosphohydrolase"
+NZ_CP007753,340709,snp,T,C,C:28 T:0,rRNA,+,,,non_coding_transcript_variant  ,EW14_RS01825,,16S ribosomal RNA
+NZ_CP007753,465121,snp,A,C,C:57 A:0,CDS,-,1498/1539,500/512,missense_variant c.1498T>G p.Ser500Ala,EW14_RS02590,,iron ABC transporter permease
+NZ_CP007753,558969,snp,T,A,A:41 T:0,CDS,+,3064/3897,1022/1298,missense_variant c.3064T>A p.Tyr1022Asn,EW14_RS03090,,translocation/assembly module TamB domain-containing protein
+NZ_CP007753,752974,snp,A,T,T:60 A:0,CDS,-,576/1068,192/355,missense_variant c.576T>A p.His192Gln,EW14_RS04145,,fructose-bisphosphate aldolase class I
+NZ_CP007753,818757,snp,G,A,A:41 G:0,CDS,+,622/825,208/274,missense_variant c.622G>A p.Glu208Lys,EW14_RS04535,rsmA,16S rRNA (adenine(1518)-N(6)/adenine(1519)-N(6))- dimethyltransferase RsmA
+NZ_CP007753,831410,snp,G,A,A:43 G:0,CDS,+,603/1185,201/394,stop_gained c.603G>A p.Trp201*,EW14_RS04610,,alanine--glyoxylate aminotransferase family protein
+NZ_CP007753,903787,snp,G,T,T:52 G:0,CDS,+,2021/2226,674/741,missense_variant c.2021G>T p.Gly674Val,EW14_RS04990,,S1 RNA-binding domain-containing protein
+NZ_CP007753,991613,snp,T,A,A:39 T:0,CDS,-,818/1572,273/523,missense_variant c.818A>T p.Tyr273Phe,EW14_RS05590,,ABC transporter substrate-binding protein
+NZ_CP007753,1341798,snp,T,C,C:48 T:0,CDS,+,416/474,139/157,missense_variant c.416T>C p.Ile139Thr,EW14_RS07445,sodN,"superoxide dismutase, Ni"
+NZ_CP007753,1342293,snp,A,C,C:50 A:0,CDS,-,596/672,199/223,missense_variant c.596T>G p.Ile199Arg,EW14_RS07455,,hydantoin utilization protein A
+NZ_CP007753,1342794,snp,G,T,T:73 G:0,CDS,-,95/672,32/223,missense_variant c.95C>A p.Thr32Asn,EW14_RS07455,,hydantoin utilization protein A
+NZ_CP007753,1473592,snp,A,G,G:71 A:0,CDS,+,538/1569,180/522,missense_variant c.538A>G p.Arg180Gly,EW14_RS08180,,Hsp70 family protein
+NZ_CP007753,1776136,snp,T,A,A:61 T:0,CDS,-,149/1680,50/559,missense_variant c.149A>T p.Asn50Ile,EW14_RS09705,,AAA family ATPase
