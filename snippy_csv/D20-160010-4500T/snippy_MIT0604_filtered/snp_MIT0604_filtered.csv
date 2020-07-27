@@ -1,5 +1,0 @@
-CHROM,POS,TYPE,REF,ALT,EVIDENCE,FTYPE,STRAND,NT_POS,AA_POS,EFFECT,LOCUS_TAG,GENE,PRODUCT
-NZ_CP007753,210561,snp,C,T,T:10 C:0,CDS,-,1057/2310,353/769,missense_variant c.1057G>A p.Gly353Arg,EW14_RS01110,,"bifunctional (p)ppGpp synthetase/guanosine-3',5'-bis(diphosphate) 3'-pyrophosphohydrolase"
-NZ_CP007753,465121,snp,A,C,C:11 A:0,CDS,-,1498/1539,500/512,missense_variant c.1498T>G p.Ser500Ala,EW14_RS02590,,iron ABC transporter permease
-NZ_CP007753,1342794,snp,G,T,T:23 G:0,CDS,-,95/672,32/223,missense_variant c.95C>A p.Thr32Asn,EW14_RS07455,,hydantoin utilization protein A
-NZ_CP007753,1473592,snp,A,G,G:13 A:0,CDS,+,538/1569,180/522,missense_variant c.538A>G p.Arg180Gly,EW14_RS08180,,Hsp70 family protein

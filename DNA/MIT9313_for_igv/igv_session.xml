@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Session genome="NC_005071" hasGeneTrack="true" hasSequenceTrack="true" locus="NC_005071:1-2410873" version="8">
+    <Resources>
+        <Resource path="s3_axenic_MIT9313.bam"/>
+        <Resource path="freebayes_MIT9313.vcf"/>
+        <Resource path="s9_1A3_MIT9313.bam"/>
+        <Resource path="s7_1A3_MIT9313.bam"/>
+        <Resource path="s5_1A3_MIT9313.bam"/>
+        <Resource path="s6_1A3_MIT9313.bam"/>
+    </Resources>
+    <Panel height="160" name="DataPanel" width="1901">
+        <Track altColor="0,0,178" attributeKey="freebayes_MIT9313.vcf" clazz="org.broad.igv.variant.VariantTrack" color="0,0,178" displayMode="EXPANDED" fontSize="10" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\freebayes_MIT9313.vcf" name="freebayes_MIT9313.vcf" siteColorMode="ALLELE_FREQUENCY" squishedHeight="1" visible="true"/>
+    </Panel>
+    <Panel height="134" name="Panel1595257970606" width="1901">
+        <Track altColor="175,175,175" attributeKey="s3_axenic_MIT9313.bam Coverage" autoScale="true" clazz="org.broad.igv.sam.CoverageTrack" color="175,175,175" fontSize="10" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s3_axenic_MIT9313.bam_coverage" name="s3_axenic_MIT9313.bam Coverage" snpThreshold="0.2" visible="true">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="45.55884" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track attributeKey="s3_axenic_MIT9313.bam Junctions" clazz="org.broad.igv.sam.SpliceJunctionTrack" fontSize="10" height="60" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s3_axenic_MIT9313.bam_junctions" name="s3_axenic_MIT9313.bam Junctions" visible="false"/>
+        <Track attributeKey="s3_axenic_MIT9313.bam" clazz="org.broad.igv.sam.AlignmentTrack" displayMode="EXPANDED" fontSize="10" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s3_axenic_MIT9313.bam" name="s3_axenic_MIT9313.bam" visible="true">
+            <RenderOptions/>
+        </Track>
+    </Panel>
+    <Panel height="134" name="Panel1595257970621" width="1901">
+        <Track altColor="175,175,175" attributeKey="s5_1A3_MIT9313.bam Coverage" autoScale="true" clazz="org.broad.igv.sam.CoverageTrack" color="175,175,175" fontSize="10" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s5_1A3_MIT9313.bam_coverage" name="s5_1A3_MIT9313.bam Coverage" snpThreshold="0.2" visible="true">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="9.307246" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track attributeKey="s5_1A3_MIT9313.bam Junctions" clazz="org.broad.igv.sam.SpliceJunctionTrack" fontSize="10" height="60" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s5_1A3_MIT9313.bam_junctions" name="s5_1A3_MIT9313.bam Junctions" visible="false"/>
+        <Track attributeKey="s5_1A3_MIT9313.bam" clazz="org.broad.igv.sam.AlignmentTrack" displayMode="EXPANDED" fontSize="10" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s5_1A3_MIT9313.bam" name="s5_1A3_MIT9313.bam" visible="true">
+            <RenderOptions/>
+        </Track>
+    </Panel>
+    <Panel height="134" name="Panel1595257970664" width="1901">
+        <Track altColor="175,175,175" attributeKey="s6_1A3_MIT9313.bam Coverage" autoScale="true" clazz="org.broad.igv.sam.CoverageTrack" color="175,175,175" fontSize="10" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s6_1A3_MIT9313.bam_coverage" name="s6_1A3_MIT9313.bam Coverage" snpThreshold="0.2" visible="true">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="54.729565" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track attributeKey="s6_1A3_MIT9313.bam Junctions" clazz="org.broad.igv.sam.SpliceJunctionTrack" fontSize="10" height="60" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s6_1A3_MIT9313.bam_junctions" name="s6_1A3_MIT9313.bam Junctions" visible="false"/>
+        <Track attributeKey="s6_1A3_MIT9313.bam" clazz="org.broad.igv.sam.AlignmentTrack" displayMode="EXPANDED" fontSize="10" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s6_1A3_MIT9313.bam" name="s6_1A3_MIT9313.bam" visible="true">
+            <RenderOptions/>
+        </Track>
+    </Panel>
+    <Panel height="134" name="Panel1595257970690" width="1901">
+        <Track altColor="175,175,175" attributeKey="s7_1A3_MIT9313.bam Coverage" autoScale="true" clazz="org.broad.igv.sam.CoverageTrack" color="175,175,175" fontSize="10" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s7_1A3_MIT9313.bam_coverage" name="s7_1A3_MIT9313.bam Coverage" snpThreshold="0.2" visible="true">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="18.74116" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track attributeKey="s7_1A3_MIT9313.bam Junctions" clazz="org.broad.igv.sam.SpliceJunctionTrack" fontSize="10" height="60" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s7_1A3_MIT9313.bam_junctions" name="s7_1A3_MIT9313.bam Junctions" visible="false"/>
+        <Track attributeKey="s7_1A3_MIT9313.bam" clazz="org.broad.igv.sam.AlignmentTrack" displayMode="EXPANDED" fontSize="10" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s7_1A3_MIT9313.bam" name="s7_1A3_MIT9313.bam" visible="true">
+            <RenderOptions/>
+        </Track>
+    </Panel>
+    <Panel height="134" name="Panel1595257970719" width="1901">
+        <Track altColor="175,175,175" attributeKey="s9_1A3_MIT9313.bam Coverage" autoScale="true" clazz="org.broad.igv.sam.CoverageTrack" color="175,175,175" fontSize="10" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s9_1A3_MIT9313.bam_coverage" name="s9_1A3_MIT9313.bam Coverage" snpThreshold="0.2" visible="true">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="52.01826" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track attributeKey="s9_1A3_MIT9313.bam Junctions" clazz="org.broad.igv.sam.SpliceJunctionTrack" fontSize="10" height="60" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s9_1A3_MIT9313.bam_junctions" name="s9_1A3_MIT9313.bam Junctions" visible="false"/>
+        <Track attributeKey="s9_1A3_MIT9313.bam" clazz="org.broad.igv.sam.AlignmentTrack" displayMode="EXPANDED" fontSize="10" id="C:\Users\wosnat\Documents\GitHub\ccpa\DNA\MIT9313_for_igv\s9_1A3_MIT9313.bam" name="s9_1A3_MIT9313.bam" visible="true">
+            <RenderOptions/>
+        </Track>
+    </Panel>
+    <Panel height="62" name="FeaturePanel" width="1901">
+        <Track attributeKey="Reference sequence" clazz="org.broad.igv.track.SequenceTrack" fontSize="10" id="Reference sequence" name="Reference sequence" visible="true"/>
+        <Track altColor="0,0,178" attributeKey="Annotations" clazz="org.broad.igv.track.FeatureTrack" color="0,0,178" fontSize="10" height="35" id="NC_005071_genes" name="Annotations" visible="true"/>
+    </Panel>
+    <PanelLayout dividerFractions="0.17532467532467533,0.32575757575757575,0.47619047619047616,0.6266233766233766,0.7770562770562771,0.9274891774891775"/>
+    <HiddenAttributes>
+        <Attribute name="DATA FILE"/>
+        <Attribute name="DATA TYPE"/>
+        <Attribute name="NAME"/>
+    </HiddenAttributes>
+</Session>

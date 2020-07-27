@@ -1,8 +1,0 @@
-CHROM,POS,TYPE,REF,ALT,EVIDENCE,FTYPE,STRAND,NT_POS,AA_POS,EFFECT,LOCUS_TAG,GENE,PRODUCT
-NZ_CP007753,210561,snp,C,T,T:11 C:0,CDS,-,1057/2310,353/769,missense_variant c.1057G>A p.Gly353Arg,EW14_RS01110,,"bifunctional (p)ppGpp synthetase/guanosine-3',5'-bis(diphosphate) 3'-pyrophosphohydrolase"
-NZ_CP007753,465121,snp,A,C,C:17 A:0,CDS,-,1498/1539,500/512,missense_variant c.1498T>G p.Ser500Ala,EW14_RS02590,,iron ABC transporter permease
-NZ_CP007753,558969,snp,T,A,A:17 T:0,CDS,+,3064/3897,1022/1298,missense_variant c.3064T>A p.Tyr1022Asn,EW14_RS03090,,translocation/assembly module TamB domain-containing protein
-NZ_CP007753,991613,snp,T,A,A:16 T:0,CDS,-,818/1572,273/523,missense_variant c.818A>T p.Tyr273Phe,EW14_RS05590,,ABC transporter substrate-binding protein
-NZ_CP007753,1342293,snp,A,C,C:10 A:0,CDS,-,596/672,199/223,missense_variant c.596T>G p.Ile199Arg,EW14_RS07455,,hydantoin utilization protein A
-NZ_CP007753,1473592,snp,A,G,G:27 A:0,CDS,+,538/1569,180/522,missense_variant c.538A>G p.Arg180Gly,EW14_RS08180,,Hsp70 family protein
-NZ_CP007753,1776136,snp,T,A,A:12 T:0,CDS,-,149/1680,50/559,missense_variant c.149A>T p.Asn50Ile,EW14_RS09705,,AAA family ATPase
