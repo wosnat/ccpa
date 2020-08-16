@@ -1,0 +1,90 @@
+ 66.43	734	734	U	0	unclassified
+ 33.57	371	0	R	1	root
+ 33.57	371	0	R1	131567	  cellular organisms
+ 33.48	370	1	D	2	    Bacteria
+ 31.04	343	1	P	1224	      Proteobacteria
+ 30.50	337	4	C	1236	        Gammaproteobacteria
+ 29.77	329	1	O	135622	          Alteromonadales
+ 29.68	328	1	F	72275	            Alteromonadaceae
+ 29.59	327	20	G	226	              Alteromonas
+ 25.16	278	108	S	28108	                Alteromonas macleodii
+ 15.38	170	170	S1	529120	                  Alteromonas macleodii ATCC 27126
+  2.62	29	29	S	314275	                Alteromonas mediterranea
+  0.27	3	0	O	72274	          Pseudomonadales
+  0.27	3	0	F	135621	            Pseudomonadaceae
+  0.27	3	1	G	286	              Pseudomonas
+  0.09	1	0	G1	136841	                Pseudomonas aeruginosa group
+  0.09	1	1	S	43263	                  Pseudomonas alcaligenes
+  0.09	1	0	G1	136846	                Pseudomonas stutzeri group
+  0.09	1	0	G2	578833	                  Pseudomonas stutzeri subgroup
+  0.09	1	1	S	316	                    Pseudomonas stutzeri
+  0.09	1	1	O	91347	          Enterobacterales
+  0.27	3	0	C	28211	        Alphaproteobacteria
+  0.18	2	0	O	356	          Rhizobiales
+  0.18	2	0	F	41294	            Bradyrhizobiaceae
+  0.18	2	1	G	374	              Bradyrhizobium
+  0.09	1	1	G1	2631580	                unclassified Bradyrhizobium
+  0.09	1	0	O	2066490	          Emcibacterales
+  0.09	1	0	F	2066491	            Emcibacteraceae
+  0.09	1	0	G	1602338	              Emcibacter
+  0.09	1	1	S	2043170	                Emcibacter congregatus
+  0.18	2	0	C	28216	        Betaproteobacteria
+  0.18	2	1	O	80840	          Burkholderiales
+  0.09	1	0	F	80864	            Comamonadaceae
+  0.09	1	0	G	47420	              Hydrogenophaga
+  0.09	1	0	G1	2610897	                unclassified Hydrogenophaga
+  0.09	1	1	S	1842537	                  Hydrogenophaga sp. RAC07
+  2.35	26	0	D1	1783272	      Terrabacteria group
+  2.17	24	0	D2	1798711	        Cyanobacteria/Melainabacteria group
+  2.17	24	0	P	1117	          Cyanobacteria
+  2.17	24	0	O	1890424	            Synechococcales
+  2.17	24	0	F	1213	              Prochloraceae
+  2.17	24	0	G	1218	                Prochlorococcus
+  1.99	22	1	G1	2627481	                  unclassified Prochlorococcus
+  1.90	21	21	S	1501268	                    Prochlorococcus sp. MIT 0604
+  0.18	2	0	S	1219	                  Prochlorococcus marinus
+  0.09	1	1	S1	59920	                    Prochlorococcus marinus str. NATL2A
+  0.09	1	1	S1	74547	                    Prochlorococcus marinus str. MIT 9313
+  0.09	1	0	P	1239	        Firmicutes
+  0.09	1	0	C	91061	          Bacilli
+  0.09	1	0	O	1385	            Bacillales
+  0.09	1	0	F	186817	              Bacillaceae
+  0.09	1	0	G	1386	                Bacillus
+  0.09	1	1	S	279826	                  Bacillus foraminis
+  0.09	1	0	P	201174	        Actinobacteria
+  0.09	1	0	C	1760	          Actinobacteria
+  0.09	1	0	O	85007	            Corynebacteriales
+  0.09	1	0	F	85025	              Nocardiaceae
+  0.09	1	0	G	1827	                Rhodococcus
+  0.09	1	0	G1	192944	                  unclassified Rhodococcus
+  0.09	1	1	S	2499145	                    Rhodococcus sp. X156
+  0.09	1	0	D	2759	    Eukaryota
+  0.09	1	0	D1	33154	      Opisthokonta
+  0.09	1	0	K	33208	        Metazoa
+  0.09	1	0	K1	6072	          Eumetazoa
+  0.09	1	0	K2	33213	            Bilateria
+  0.09	1	0	K3	33511	              Deuterostomia
+  0.09	1	0	P	7711	                Chordata
+  0.09	1	0	P1	89593	                  Craniata
+  0.09	1	0	P2	7742	                    Vertebrata
+  0.09	1	0	P3	7776	                      Gnathostomata
+  0.09	1	0	P4	117570	                        Teleostomi
+  0.09	1	0	P5	117571	                          Euteleostomi
+  0.09	1	0	P6	8287	                            Sarcopterygii
+  0.09	1	0	P7	1338369	                              Dipnotetrapodomorpha
+  0.09	1	0	P8	32523	                                Tetrapoda
+  0.09	1	0	P9	32524	                                  Amniota
+  0.09	1	0	C	40674	                                    Mammalia
+  0.09	1	0	C1	32525	                                      Theria
+  0.09	1	0	C2	9347	                                        Eutheria
+  0.09	1	0	C3	1437010	                                          Boreoeutheria
+  0.09	1	0	C4	314146	                                            Euarchontoglires
+  0.09	1	0	O	9443	                                              Primates
+  0.09	1	0	O1	376913	                                                Haplorrhini
+  0.09	1	0	O2	314293	                                                  Simiiformes
+  0.09	1	0	O3	9526	                                                    Catarrhini
+  0.09	1	0	O4	314295	                                                      Hominoidea
+  0.09	1	0	F	9604	                                                        Hominidae
+  0.09	1	0	F1	207598	                                                          Homininae
+  0.09	1	0	G	9605	                                                            Homo
+  0.09	1	1	S	9606	                                                              Homo sapiens
