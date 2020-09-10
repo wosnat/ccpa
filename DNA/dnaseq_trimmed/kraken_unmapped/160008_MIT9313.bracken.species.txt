@@ -1,0 +1,4 @@
+name	taxonomy_id	taxonomy_lvl	kraken_assigned_reads	added_reads	new_est_reads	fraction_total_reads
+Ralstonia	48736	G	3	1	4	0.61402
+Pseudomonas	286	G	1	0	1	0.13248
+Homo	9605	G	2	0	2	0.25350
