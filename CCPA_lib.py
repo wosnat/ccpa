@@ -1276,10 +1276,26 @@ def model_exponential_decline(z, a1, b1, c1, _):
         (np.exp(-a1 * z) + b1)
     )
 
+
 def model_exponential1(z, a1, b1, c1, _):
     #print(z[0])
     return (
         b1*np.exp(-a1 * z)
+    )
+
+def model_biexponential1(z, a1, _, b1, f1):
+    #print(z[0])
+    if f1<0: #or a1 > b1 :
+    # out of scope
+        return z * 0
+        
+    if f1>1: # or a1 < b1 :
+    # out of scope
+        return (z * 0) + 100
+       
+    
+    return (
+        b1*(f1*np.exp(-a1 * z) + (1-f1)*np.exp(-b1 * z)) 
     )
 
 
