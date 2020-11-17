@@ -1341,13 +1341,13 @@ def model_exponential_segmented(z, s1, s2, s3, a1, b1, c1, a2, b2, c2, a3, b3, c
                         ]
                         )
 
-def model_linear(z, a1, b1, _1, _2 ):
+def model_linear(z, a1, _, b1, _2 ):
     return a1 * z + b1
 
 #  3-­‐parameter  Logistic :
 #         Y(t)  =  b1   /  [1  +  b2 *exp(  b3 *t  )]
 def model_logistic3(z, b1, b2, b3 , _):
-    return b1 / (1 + b2 * np.exp(b3 * z))
+    return b2 / (1 + b3 * np.exp(b1 * z))
 #
 # 4-­‐parameter  Logistic
 #
@@ -1369,7 +1369,11 @@ def model_rodbard4(z, b1, b2, b3, b4):
 #
 #     Y(t)  =  b1 *exp(  –  b2* exp(  –  b3 *t))
 def model_gompertz(z, b1, b2, b3, _):
-    return  b1 * np.exp( - b2 * np.exp( -b3 * z))
+    return  b2 * np.exp( - b1 * np.exp( -b3 * z))
+    
+def model_weibull(z, b1, b2, b3, _):
+    return  b2 * np.exp( - np.power(b1 * z, b3))
+  
 #
 # Log-­‐Logistic
 #
