@@ -1372,7 +1372,7 @@ def model_gompertz(z, b1, b2, b3, _):
     return  b2 * np.exp( - b1 * np.exp( -b3 * z))
     
 def model_weibull(z, b1, b2, b3, _):
-    return  b2 * np.exp( - np.power(b1 * z, b3))
+    return  b2 * np.exp( - b1 * np.power(z, b3))
   
 #
 # Log-­‐Logistic
