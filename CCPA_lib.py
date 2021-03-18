@@ -1137,7 +1137,7 @@ def apply_fit1(df, model1, print_popt=True, x_col='day'):
     d = df.dropna(subset=['FL'])
     x = d[x_col]
     y = d['FL']
-    p0 = [0.5, 0.5, 0.5, 0.5]
+    p0 = [0.5, 0.5, 0.5]
     y_pred = 0
     y_pred_p0 = 0
     score = 0
@@ -1145,7 +1145,7 @@ def apply_fit1(df, model1, print_popt=True, x_col='day'):
     score_p0 = 0
     popt_p0 = []
 
-    model = lambda z, a1, b1, c1, d1: model1(z,a1,y[0],c1,d1)
+    model = lambda z, a1,  c1, d1: model1(z,a1,y[0],c1,d1)
 
     try:
         popt, pcov = curve_fit(model, x, y, method='dogbox', loss='soft_l1', f_scale=0.1,  # p0=p0
@@ -1283,7 +1283,7 @@ def model_exponential1(z, a1, b1, c1, _):
         b1*np.exp(-a1 * z)
     )
 
-def model_biexponential1(z, a1, _, b1, f1):
+def model_biexponential1(z, a1, b1, a2, f1):
     #print(z[0])
     if f1<0: #or a1 > b1 :
     # out of scope
@@ -1295,7 +1295,7 @@ def model_biexponential1(z, a1, _, b1, f1):
        
     
     return (
-        b1*(f1*np.exp(-a1 * z) + (1-f1)*np.exp(-b1 * z)) 
+        b1*(f1*np.exp(-a1 * z) + (1-f1)*np.exp(-a2 * z)) 
     )
 
 
@@ -1316,7 +1316,7 @@ def model_hyperbolic(z, a1, b1, c1, d1):
         return z*0
     return (
 
-        (c1 / np.power((1 + a1 * b1 * z), (1/a1)))
+        (b1 / np.power((1 + c1 * z), a1))
     )
 
 def model5(z,  # s1, #s2, s3,
