@@ -169,7 +169,8 @@ class ModelProALT:
             ('q_n_min_a', 'Q_N_min^A', 7e-10 * pro_alt_vol_ratio),
             ('q_c_min_a', 'Q_C_min^A', 3e-11 * pro_alt_vol_ratio),
             ('q_n_max_p', 'Q_N_max^P', 1.5e-9),
-            ('q_c_max_p', 'Q_C_max^P', 6e-9),
+            ('q_c_max_p',
+            'Q_C_max^P', 6e-9),
             ('q_n_max_a', 'Q_N_max^A', 1.5e-9 * pro_alt_vol_ratio),
             ('q_c_max_a', 'Q_C_max^A', 6e-9 * pro_alt_vol_ratio),
 
