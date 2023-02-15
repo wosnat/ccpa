@@ -188,7 +188,10 @@ def fit_regression(df, x_col, y_col):
     """
     X = df[x_col].values.reshape((df.shape[0], 1))
     y = df[y_col]
-    reg = LinearRegression(normalize=True).fit(X, y)
+    # from sklearn.pipeline import make_pipeline
+    # model = make_pipeline(StandardScaler(with_mean=False), LinearRegression())
+
+    reg = LinearRegression().fit(X, y)
     return (reg, reg.intercept_, reg.coef_[0], reg.score(X, y))
 
 
